@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: html-head('Ticket Review & Reply')}"></head>
+<body>
+
+    <!-- Standard EduFrame Staff Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo-section">
+                <a th:href="@{/staff/helpdesk}">
+                    <div class="logo-symbol">E</div>
+                    <div class="logo-text">Edu<span>Frame</span>
+                        <span style="font-size: 12px; font-weight: 700; color: var(--color-secondary); margin-left: 8px; text-transform: uppercase; letter-spacing: 0.8px; background: rgba(242,169,0,0.12); border: 1px solid var(--color-secondary); padding: 2px 8px; border-radius: 4px;">Staff Help Desk</span>
+                    </div>
+                </a>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item">
+                    <a th:href="@{/staff/helpdesk}" class="nav-link">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 5px; vertical-align: text-bottom;"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        Back to Console
+                    </a>
+                </div>
+            </nav>
+            <div class="header-utils">
+                <div style="display: flex; align-items: center; gap: 8px; background-color: rgba(242,169,0,0.12); border: 1px solid var(--color-secondary); padding: 5px 14px; border-radius: var(--radius-full);">
+                    <span class="pulse-dot"></span>
+                    <span style="font-size: 12px; font-weight: 700; color: var(--color-secondary);">Reviewing Ticket</span>
+                </div>
+                <a th:href="@{/logout}" class="btn btn-outline-light" style="font-size: 13px; padding: 7px 16px;">Sign Out</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Content — injected by JS -->
+    <main class="container" style="margin-top: 36px; margin-bottom: 60px;">
+        <div id="ticket-review-page">
+            <!-- Loading State -->
+            <div id="review-loading" style="text-align: center; padding: 80px 0;">
+                <div class="spinner" style="margin: 0 auto 16px auto;"></div>
+                <p style="color: var(--color-text-muted);">Loading ticket details...</p>
+            </div>
+
+            <!-- Error State (hidden by default) -->
+            <div id="review-error" style="display: none; text-align: center; padding: 80px 0;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="1.5" style="margin-bottom: 16px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <h2 style="color: var(--color-primary); margin-bottom: 8px;">Ticket Not Found</h2>
+                <p style="color: var(--color-text-muted);">The requested ticket could not be loaded.</p>
+                <a th:href="@{/staff/helpdesk}" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">Return to Console</a>
+            </div>
+
+            <!-- Main Review Content (hidden until loaded) -->
+            <div id="review-content" style="display: none;">
+
+                <!-- Breadcrumb -->
+                <div style="display: flex; align-items: center; gap: 8px; color: var(--color-text-muted); font-size: 13px; margin-bottom: 24px;">
+                    <a th:href="@{/staff/helpdesk}" style="color: var(--color-primary); font-weight: 600;">Ticket Console</a>
+                    <span>/</span>
+                    <span id="bc-ticketid" style="color: var(--color-text-muted);"></span>
+                    <span>/</span>
+                    <span style="color: var(--color-text);">Review &amp; Reply</span>
+                </div>
+
+                <!-- Page Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <h1 style="font-size: 26px; margin-bottom: 4px;" id="review-subject"></h1>
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <span id="review-ticketid-badge" style="font-size: 13px; font-weight: 700; color: var(--color-primary);"></span>
+                            <span id="review-status-badge"></span>
+                            <span id="review-priority-badge"></span>
+                            <span id="review-reply-status"></span>
+                        </div>
+                    </div>
+                    <a th:href="@{/staff/helpdesk}" class="btn btn-outline-light" style="font-size: 13px; padding: 8px 18px; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"></path><polyline points="12 19 5 12 12 5"></polyline></svg>
+                        Back to Queue
+                    </a>
+                </div>
+
+                <!-- Two-column layout -->
+                <div style="display: grid; grid-template-columns: 1fr 400px; gap: 24px; align-items: start;">
+
+                    <!-- Left: Student Report Details -->
+                    <div>
+                        <!-- Student Ticket Card -->
+                        <div class="support-portal-container" style="margin-bottom: 24px;">
+                            <div style="background: var(--color-primary-dark); padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--color-secondary);">
+                                <span style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px;">Student Incident Report</span>
+                                <span id="review-date" style="font-size: 12px; color: rgba(255,255,255,0.55);"></span>
+                            </div>
+                            <div style="padding: 24px;">
+                                <!-- Category -->
+                                <div style="margin-bottom: 18px;">
+                                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 6px;">Issue Category</div>
+                                    <div id="review-category" style="font-size: 14px; font-weight: 600; color: var(--color-primary);"></div>
+                                </div>
+                                <!-- Description -->
+                                <div style="margin-bottom: 18px;">
+                                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 8px;">Issue Description</div>
+                                    <div id="review-description" style="font-size: 14px; line-height: 1.7; color: var(--color-text); background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; white-space: pre-wrap;"></div>
+                                </div>
+                                <!-- Student Details -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+                                    <div>
+                                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 4px;">Student ID</div>
+                                        <div id="review-studentid" style="font-size: 14px; font-weight: 600;"></div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 4px;">Contact Email</div>
+                                        <div id="review-email" style="font-size: 14px; font-weight: 600;"></div>
+                                    </div>
+                                </div>
+                                <!-- Attachment -->
+                                <div id="review-attachment-section" style="display: none;">
+                                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); margin-bottom: 6px;">Student Attachment</div>
+                                    <a id="review-attachment-link" href="#" download style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--color-primary); background: var(--color-bg); border: 1px solid var(--color-border); padding: 8px 14px; border-radius: var(--radius-sm); text-decoration: none; transition: var(--transition);">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                        <span id="review-attachment-name"></span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Previous Staff Reply (if exists) -->
+                        <div id="prev-reply-section" style="display: none;" class="support-portal-container" style="margin-bottom: 24px;">
+                            <div style="background: rgba(16,185,129,0.08); border-bottom: 2px solid #10b981; padding: 14px 22px; display: flex; align-items: center; gap: 8px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span style="font-size: 13px; font-weight: 700; color: #047857; text-transform: uppercase; letter-spacing: 0.5px;">Previous Staff Reply</span>
+                            </div>
+                            <div style="padding: 20px 24px;">
+                                <div id="prev-assigned" style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 10px;"></div>
+                                <div id="prev-reply-text" style="font-size: 14px; line-height: 1.7; color: var(--color-text); white-space: pre-wrap;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Staff Reply Form -->
+                    <div>
+                        <div class="support-portal-container" style="position: sticky; top: 100px;">
+                            <div style="background: var(--color-primary-dark); padding: 14px 22px; border-bottom: 2px solid var(--color-secondary);">
+                                <div style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 0.5px;">Staff Resolution &amp; Reply</div>
+                            </div>
+                            <div style="padding: 24px;">
+
+                                <!-- Success Banner -->
+                                <div id="reply-success" style="display: none; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.4); border-left: 4px solid #10b981; border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 18px; font-size: 14px; font-weight: 600; color: #047857;">
+                                    Reply sent successfully. Student will see the update on their receipt.
+                                </div>
+                                <div id="reply-error" style="display: none; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-left: 4px solid var(--color-danger); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 18px; font-size: 14px; color: var(--color-danger);"></div>
+
+                                <!-- Workflow Status -->
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label class="form-label" style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted);">Workflow Status</label>
+                                    <select id="reply-status" class="form-input" style="background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px 14px; width: 100%; font-size: 14px; cursor: pointer;">
+                                        <option value="Open">Open</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Resolved">Resolved</option>
+                                        <option value="Closed">Closed</option>
+                                    </select>
+                                </div>
+
+                                <!-- Priority -->
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label class="form-label" style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted);">Priority Level</label>
+                                    <select id="reply-priority" class="form-input" style="background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px 14px; width: 100%; font-size: 14px; cursor: pointer;">
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                        <option value="Urgent">Urgent</option>
+                                    </select>
+                                </div>
+
+                                <!-- Assigned Officer -->
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label class="form-label" style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted);">Assigned Officer</label>
+                                    <input type="text" id="reply-assignedto" class="form-input" placeholder="e.g. K. Jayasinghe (Senior Help Desk)" style="background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 10px 14px; width: 100%; font-size: 14px;">
+                                </div>
+
+                                <!-- Quick Resolution Templates -->
+                                <div style="margin-bottom: 14px;">
+                                    <label style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); display: block; margin-bottom: 8px;">Quick Resolution Templates</label>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        <button type="button" class="quick-reply-btn" onclick="fillQuickReply('cdn')" style="background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-primary); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; transition: var(--transition);">CDN Cache Purged</button>
+                                        <button type="button" class="quick-reply-btn" onclick="fillQuickReply('access')" style="background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-primary); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; transition: var(--transition);">Access Unlocked</button>
+                                        <button type="button" class="quick-reply-btn" onclick="fillQuickReply('audio')" style="background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-primary); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; transition: var(--transition);">Audio Desync Fixed</button>
+                                        <button type="button" class="quick-reply-btn" onclick="fillQuickReply('captions')" style="background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-primary); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; transition: var(--transition);">Captions Added</button>
+                                        <button type="button" class="quick-reply-btn" onclick="fillQuickReply('investigating')" style="background: var(--color-bg); border: 1px solid var(--color-border); color: var(--color-primary); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; cursor: pointer; transition: var(--transition);">Investigating</button>
+                                    </div>
+                                </div>
+
+                                <!-- Response Text -->
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label class="form-label" style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted);">Official Response to Student <span style="color: var(--color-danger);">*</span></label>
+                                    <textarea id="reply-text" rows="7" class="form-input" placeholder="Type your official reply, troubleshooting steps, or resolution details here..." style="background: var(--color-bg-input); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 12px 14px; width: 100%; font-size: 14px; line-height: 1.6; resize: vertical;"></textarea>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <button id="send-reply-btn" onclick="submitReply()" class="btn btn-primary" style="width: 100%; padding: 13px; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                    Send Reply &amp; Update Status
+                                </button>
+
+                                <div style="margin-top: 14px; text-align: center;">
+                                    <a th:href="@{/staff/helpdesk}" style="font-size: 13px; color: var(--color-text-muted); text-decoration: underline;">Cancel — return to queue</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Standard Footer -->
+    <div th:replace="~{layout/base :: footer}"></div>
+    <div th:replace="~{layout/base :: scripts}"></div>
+
+    <script th:inline="javascript">
+        const TICKET_ID = /*[[${ticketId}]]*/ 'TKT-1001';
+
+        const QUICK_REPLIES = {
+            cdn:          { text: "We have purged the video CDN streaming cache for this lecture. Please refresh your player with Ctrl+F5 and try again.", status: "Resolved" },
+            access:       { text: "Your student module enrollment permissions have been synchronized and verified. The lecture video is now unlocked. Please log out and log in again.", status: "Resolved" },
+            audio:        { text: "The audio and video presentation stream synchronization has been re-encoded and calibrated by our media team. Please reload the lecture player.", status: "Resolved" },
+            captions:     { text: "Closed captions and subtitle tracks have been generated and attached to this lecture recording. Toggle CC in the player controls.", status: "Resolved" },
+            investigating:{ text: "Our engineering team is currently investigating this playback issue with the video stream server. We will update you within 24 hours.", status: "In Progress" }
+        };
+
+        function fillQuickReply(key) {
+            const qr = QUICK_REPLIES[key];
+            if (!qr) return;
+            document.getElementById('reply-text').value = qr.text;
+            document.getElementById('reply-status').value = qr.status;
+        }
+
+        function getStatusBadgeHtml(status) {
+            const map = {
+                'Open':        'background: rgba(239,68,68,0.12); color: #dc2626;',
+                'In Progress': 'background: rgba(245,158,11,0.12); color: #d97706;',
+                'Resolved':    'background: rgba(16,185,129,0.12); color: #059669;',
+                'Closed':      'background: rgba(100,116,139,0.12); color: #64748b;'
+            };
+            const style = map[status] || 'background: rgba(100,116,139,0.1); color: #64748b;';
+            return `<span style="${style} padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700;">${status || 'Open'}</span>`;
+        }
+
+        function getPriorityBadgeHtml(priority) {
+            const map = {
+                'Urgent': 'background: rgba(239,68,68,0.15); color: #dc2626; border: 1px solid rgba(239,68,68,0.3);',
+                'High':   'background: rgba(234,88,12,0.12); color: #c2410c; border: 1px solid rgba(234,88,12,0.3);',
+                'Medium': 'background: rgba(245,158,11,0.12); color: #b45309; border: 1px solid rgba(245,158,11,0.3);',
+                'Low':    'background: rgba(100,116,139,0.1); color: #475569; border: 1px solid rgba(100,116,139,0.2);'
+            };
+            const style = map[priority] || map['Low'];
+            return `<span style="${style} padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700;">${priority || 'Medium'}</span>`;
+        }
+
+        async function loadTicket() {
+            try {
+                const res = await fetch(`/api/tickets/${TICKET_ID}`);
+                if (!res.ok) throw new Error('Not found');
+                const t = await res.json();
+
+                // Populate breadcrumb
+                document.getElementById('bc-ticketid').textContent = t.ticketId;
+
+                // Page header
+                document.getElementById('review-subject').textContent = t.subject;
+                document.getElementById('review-ticketid-badge').textContent = t.ticketId;
+                document.getElementById('review-status-badge').innerHTML = getStatusBadgeHtml(t.status);
+                document.getElementById('review-priority-badge').innerHTML = getPriorityBadgeHtml(t.priority);
+                document.getElementById('review-reply-status').innerHTML = t.adminResponse
+                    ? '<span style="background: rgba(16,185,129,0.12); color: #059669; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700;">Replied</span>'
+                    : '<span style="background: rgba(239,68,68,0.1); color: #dc2626; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700;">Needs Reply</span>';
+
+                // Ticket details
+                document.getElementById('review-category').textContent = t.category || 'General';
+                document.getElementById('review-description').textContent = t.description;
+                document.getElementById('review-studentid').textContent = t.studentId || 'Anonymous';
+                document.getElementById('review-email').textContent = t.studentEmail || '—';
+                document.getElementById('review-date').textContent = t.submittedAt
+                    ? new Date(t.submittedAt).toLocaleString()
+                    : (t.createdAt ? new Date(t.createdAt).toLocaleString() : '');
+
+                // Attachment
+                if (t.attachmentName) {
+                    document.getElementById('review-attachment-section').style.display = 'block';
+                    document.getElementById('review-attachment-name').textContent = t.attachmentName;
+                    document.getElementById('review-attachment-link').href = `/api/tickets/${t.ticketId}/attachment`;
+                }
+
+                // Previous reply
+                if (t.adminResponse) {
+                    document.getElementById('prev-reply-section').style.display = 'block';
+                    document.getElementById('prev-reply-text').textContent = t.adminResponse;
+                    document.getElementById('prev-assigned').textContent = t.assignedTo
+                        ? `Handled by: ${t.assignedTo}`
+                        : 'Handled by: Help Desk Officer';
+                }
+
+                // Pre-fill form with current values
+                document.getElementById('reply-status').value = t.status || 'Open';
+                document.getElementById('reply-priority').value = t.priority || 'Medium';
+                document.getElementById('reply-assignedto').value = t.assignedTo || '';
+                if (t.adminResponse) {
+                    document.getElementById('reply-text').value = t.adminResponse;
+                }
+
+                // Show content
+                document.getElementById('review-loading').style.display = 'none';
+                document.getElementById('review-content').style.display = 'block';
+
+            } catch (err) {
+                document.getElementById('review-loading').style.display = 'none';
+                document.getElementById('review-error').style.display = 'block';
+            }
+        }
+
+        async function submitReply() {
+            const replyText = document.getElementById('reply-text').value.trim();
+            if (!replyText) {
+                document.getElementById('reply-error').style.display = 'block';
+                document.getElementById('reply-error').textContent = 'Please enter a response before sending.';
+                return;
+            }
+
+            const btn = document.getElementById('send-reply-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span>Sending...</span>';
+
+            document.getElementById('reply-success').style.display = 'none';
+            document.getElementById('reply-error').style.display = 'none';
+
+            try {
+                const payload = {
+                    adminResponse: replyText,
+                    status: document.getElementById('reply-status').value,
+                    priority: document.getElementById('reply-priority').value,
+                    assignedTo: document.getElementById('reply-assignedto').value.trim() || null
+                };
+
+                const res = await fetch(`/api/tickets/${TICKET_ID}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error('Server error');
+
+                // Update badges live
+                document.getElementById('review-status-badge').innerHTML = getStatusBadgeHtml(payload.status);
+                document.getElementById('review-priority-badge').innerHTML = getPriorityBadgeHtml(payload.priority);
+                document.getElementById('review-reply-status').innerHTML = '<span style="background: rgba(16,185,129,0.12); color: #059669; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 700;">Replied</span>';
+
+                // Show previous reply
+                document.getElementById('prev-reply-section').style.display = 'block';
+                document.getElementById('prev-reply-text').textContent = replyText;
+                document.getElementById('prev-assigned').textContent = payload.assignedTo
+                    ? `Handled by: ${payload.assignedTo}`
+                    : 'Handled by: Help Desk Officer';
+
+                document.getElementById('reply-success').style.display = 'block';
+
+            } catch (err) {
+                document.getElementById('reply-error').style.display = 'block';
+                document.getElementById('reply-error').textContent = 'Failed to send reply. Please try again.';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send Reply & Update Status';
+            }
+        }
+
+        // Load on page ready
+        document.addEventListener('DOMContentLoaded', loadTicket);
+    </script>
+
+</body>
+</html>
