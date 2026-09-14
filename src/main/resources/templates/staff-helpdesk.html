@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: html-head('Staff Ticket Resolution Console')}"></head>
+<body>
+
+    <!-- 1. Standard EduFrame Header (Staff variant via inline override) -->
+    <header>
+        <div class="container header-container">
+            <div class="logo-section">
+                <a th:href="@{/staff/helpdesk}">
+                    <div class="logo-symbol">E</div>
+                    <div class="logo-text">Edu<span>Frame</span>
+                        <span style="font-size: 12px; font-weight: 700; color: var(--color-secondary); margin-left: 8px; text-transform: uppercase; letter-spacing: 0.8px; background: rgba(242,169,0,0.12); border: 1px solid var(--color-secondary); padding: 2px 8px; border-radius: 4px;">Staff Help Desk</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Staff-only Nav: Ticket Console + Sign Out only -->
+            <nav class="nav-menu">
+                <div class="nav-item active">
+                    <a th:href="@{/staff/helpdesk}" class="nav-link" style="color: var(--color-secondary);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 5px; vertical-align: text-bottom;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        Ticket Console
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Staff Status Badge + Sign Out -->
+            <div class="header-utils">
+                <div style="display: flex; align-items: center; gap: 8px; background-color: rgba(242, 169, 0, 0.12); border: 1px solid var(--color-secondary); padding: 5px 14px; border-radius: var(--radius-full);">
+                    <span class="pulse-dot"></span>
+                    <span style="font-size: 12px; font-weight: 700; color: var(--color-secondary);">Help Desk Active</span>
+                </div>
+                <a th:href="@{/logout}" class="btn btn-outline-light" style="font-size: 13px; padding: 7px 16px;">Sign Out</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. Hero Section matching system design -->
+    <section class="support-hero-section">
+        <div class="container">
+            <div class="support-hero-content animate-fade">
+                <div class="support-hero-badge">
+                    <span class="pulse-dot"></span>
+                    <span>EduFrame Staff Ticket Resolution Center</span>
+                </div>
+                <h1>Support Ticket <span>Management Console</span></h1>
+                <p class="support-hero-description">
+                    Review student video incident reports, dispatch official resolution replies, update ticket workflow statuses, and manage priorities for the EduFrame streaming platform.
+                </p>
+
+                <!-- Staff Highlights Grid using same system classes -->
+                <div class="support-highlights-grid">
+                    <div class="support-highlight-item">
+                        <div class="highlight-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-secondary)" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        </div>
+                        <div>
+                            <div class="highlight-title">Direct Student Replies</div>
+                            <div class="highlight-sub">Send official resolution responses to eTicket receipts</div>
+                        </div>
+                    </div>
+                    <div class="support-highlight-item">
+                        <div class="highlight-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-secondary)" stroke-width="2.2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        </div>
+                        <div>
+                            <div class="highlight-title">Lifecycle Control</div>
+                            <div class="highlight-sub">Open &rarr; In Progress &rarr; Resolved &rarr; Closed</div>
+                        </div>
+                    </div>
+                    <div class="support-highlight-item">
+                        <div class="highlight-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--color-secondary)" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        </div>
+                        <div>
+                            <div class="highlight-title">Response SLA Target</div>
+                            <div class="highlight-sub">Under 15 minutes for all open incidents</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Main Staff Console (reuses same support-main-container layout) -->
+    <main class="container support-main-container">
+        <div class="support-wrapper">
+            <!-- React mounts in Staff Console mode (isStaffConsole=true) -->
+            <div id="staff-helpdesk-root"></div>
+        </div>
+    </main>
+
+    <!-- 4. Standard System Footer -->
+    <div th:replace="~{layout/base :: footer}"></div>
+
+    <!-- 5. Standard System Scripts -->
+    <div th:replace="~{layout/base :: scripts}"></div>
+
+</body>
+</html>
