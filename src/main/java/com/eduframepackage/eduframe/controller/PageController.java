@@ -1,6 +1,9 @@
 package com.eduframepackage.eduframe.controller;
 
+import com.eduframepackage.eduframe.dto.TicketReceiptDTO;
 import com.eduframepackage.eduframe.model.Video;
+import com.eduframepackage.eduframe.service.TicketService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +16,9 @@ import java.util.stream.Collectors;
 
 @Controller
 public class PageController {
+
+    @Autowired
+    private TicketService ticketService;
 
     private final List<Video> mockVideos = new ArrayList<>();
 
@@ -171,10 +177,16 @@ public class PageController {
         return "staff-helpdesk";
     }
 
-    @GetMapping("/staff/ticket/{ticketId}")
+    @GetMapping({"/staff/tickets/{ticketId}", "/staff/helpdesk/review/{ticketId}"})
     public String staffTicketReview(@PathVariable("ticketId") String ticketId, Model model) {
+        try {
+            TicketReceiptDTO ticket = ticketService.getTicketReceipt(ticketId);
+            model.addAttribute("ticket", ticket);
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Ticket not found with ID: " + ticketId);
+        }
         model.addAttribute("ticketId", ticketId);
-        return "staff-ticket-review";
+        return "staff-ticket-detail";
     }
 
     @GetMapping("/staff/login")

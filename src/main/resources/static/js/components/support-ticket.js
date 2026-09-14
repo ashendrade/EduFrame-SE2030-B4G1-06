@@ -1313,11 +1313,11 @@
                                             <td>
                                                 <div className="ticket-row-actions">
                                                     <a
+                                                        href={`/staff/tickets/${t.ticketId}`}
                                                         className="action-icon-btn"
-                                                        href={`/staff/ticket/${t.ticketId}`}
-                                                        title="Open full Review & Reply page"
+                                                        title="Review & Reply on Dedicated Page"
                                                     >
-                                                        Review &amp; Reply
+                                                        Review & Reply
                                                     </a>
                                                     {t.attachmentName && (
                                                         <a
