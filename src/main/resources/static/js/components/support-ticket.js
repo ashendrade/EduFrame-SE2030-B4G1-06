@@ -20,11 +20,13 @@
     const { useState, useEffect, useRef } = React;
 
     const CATEGORIES = [
-        'Technical Issue',
-        'Lecture Video Access',
-        'Course Content & Slides',
-        'Portal & Account',
-        'Assessment & Grades',
+        'Video Playback & Buffering',
+        'Audio & Subtitles',
+        'Lecture Access & Permissions',
+        'Video Quality & Streaming',
+        'Video Upload & Transcoding',
+        'Search, Catalog & Watch History',
+        'Account & Portal Access',
         'General Inquiry'
     ];
 
@@ -37,32 +39,39 @@
 
     const PRESET_TEMPLATES = [
         {
-            title: '🎥 Video Playback Error',
-            subject: 'Cannot stream lecture video for module SE2030',
-            category: 'Lecture Video Access',
+            title: 'Video Buffering & Freezing',
+            subject: 'Lecture video stream constantly freezes and buffers',
+            category: 'Video Playback & Buffering',
             priority: 'High',
-            description: 'Dear Support, the lecture video for SE2030 Lecture 2 keeps buffering and displays a playback error on the player screen. Please check the video asset server.'
+            description: 'Dear Support, while watching the lecture video, playback freezes repeatedly and shows infinite buffering despite a stable internet connection. Please inspect the streaming server CDN.'
         },
         {
-            title: '📝 Missing Lecture Slides',
-            subject: 'Lecture notes and slide deck missing for SE2030',
-            category: 'Course Content & Slides',
+            title: 'Audio / Video Desync',
+            subject: 'Audio is out of sync with video stream during lecture playback',
+            category: 'Audio & Subtitles',
             priority: 'Medium',
-            description: 'Dear Lecturer, the lecture slides and PDF notes for this week have not been attached in the resources tab. Kindly upload them at your earliest convenience.'
+            description: 'The lecturer audio stream is out of sync with the video presentation slides by several seconds. Please check or re-encode the audio track synchronization.'
         },
         {
-            title: '🔑 Portal Login Failure',
-            subject: 'Unable to log into student portal with credentials',
-            category: 'Portal & Account',
+            title: 'Restricted Video Access',
+            subject: 'Enrolled module lecture video displays Access Restricted error',
+            category: 'Lecture Access & Permissions',
             priority: 'High',
-            description: 'Dear IT Help Desk, my student account credentials are not recognized when logging into EduFrame. Please help reset my access or check SAM sync.'
+            description: 'I am enrolled in this course module, but trying to browse and play this lecture recording returns a locked or access restricted permission error.'
         },
         {
-            title: '⚡ Urgent Exam Issue',
-            subject: 'URGENT: Online quiz submission timeout error',
-            category: 'Assessment & Grades',
-            priority: 'Urgent',
-            description: 'I was submitting my online quiz for IT1010 and received a server timeout error. Please confirm if my submission timestamp was logged in the system.'
+            title: 'Missing Subtitles / CC',
+            subject: 'Closed captions (CC) missing or misaligned for lecture video',
+            category: 'Audio & Subtitles',
+            priority: 'Low',
+            description: 'The closed captions (CC) button does not load English subtitles for this lecture video, or subtitle text timestamps are misaligned.'
+        },
+        {
+            title: 'Video Upload Failed',
+            subject: 'Uploaded lecture recording stuck in processing / transcoding',
+            category: 'Video Upload & Transcoding',
+            priority: 'Medium',
+            description: 'I uploaded an MP4 lecture recording through the upload portal, but transcoding status has remained stuck in processing without completing.'
         }
     ];
 
@@ -75,7 +84,7 @@
         const [description, setDescription] = useState('');
         const [studentId, setStudentId] = useState('');
         const [studentEmail, setStudentEmail] = useState('');
-        const [category, setCategory] = useState('Technical Issue');
+        const [category, setCategory] = useState('Video Playback & Buffering');
         const [priority, setPriority] = useState('Medium');
         const [file, setFile] = useState(null);
 
@@ -205,10 +214,8 @@
         useEffect(() => {
             if (activeTab === 'my-tickets') {
                 fetchMyTickets();
-            } else if (activeTab === 'console') {
-                fetchConsoleData();
             }
-        }, [activeTab, consoleStatus, consoleCategory]);
+        }, [activeTab]);
 
         /**
          * Validates form input fields according to UC-05 rules.
@@ -550,8 +557,9 @@
                                 <div className="receipt-item full-width">
                                     <span className="receipt-label">Attached Documentation</span>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
-                                        <span className="file-attachment-tag">
-                                            📎 {data.attachmentName} {data.attachmentSize ? `(${(data.attachmentSize / 1024).toFixed(1)} KB)` : ''}
+                                        <span className="file-attachment-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                            {data.attachmentName} {data.attachmentSize ? `(${(data.attachmentSize / 1024).toFixed(1)} KB)` : ''}
                                         </span>
                                         <a
                                             href={`/api/tickets/${data.ticketId}/attachment`}
@@ -633,224 +641,334 @@
             }
 
             return (
-                <div className="ticket-form-card animate-fade">
-                    <div className="form-card-header">
-                        <div>
-                            <h2>Submit Support Ticket</h2>
-                            <p className="form-subtitle">Have an academic, technical, or portal issue? Fill out the form below to reach the EduFrame Help Desk.</p>
-                        </div>
-                        {isModal && onClose && (
-                            <button className="modal-close-btn" onClick={onClose} aria-label="Close">
-                                ✕
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Quick Preset Templates (Shown on main page) */}
-                    {!isModal && (
-                        <div className="template-chips-section">
-                            <span className="template-chips-label">Quick Templates (Click to fill):</span>
-                            <div className="template-chips">
-                                {PRESET_TEMPLATES.map((tpl, i) => (
-                                    <button
-                                        key={i}
-                                        type="button"
-                                        className="template-chip"
-                                        onClick={() => applyTemplate(tpl)}
-                                    >
-                                        {tpl.title}
+                <div className="support-submit-grid animate-fade">
+                    {/* Left Main Form Column */}
+                    <div className="support-submit-main">
+                        <div className="ticket-form-card">
+                            <div className="form-card-header">
+                                <div>
+                                    <h2>Submit Video Support Ticket</h2>
+                                    <p className="form-subtitle">Encountered a playback glitch, buffering issue, locked lecture video, or upload error? Fill out the form below for fast resolution.</p>
+                                </div>
+                                {isModal && onClose && (
+                                    <button className="modal-close-btn" onClick={onClose} aria-label="Close">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                     </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {serverError && (
-                        <div className="alert-banner alert-danger animate-fade">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
-                            <span>{serverError}</span>
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} noValidate className="ticket-form">
-                        {/* Category and Priority Selectors */}
-                        <div className="form-row">
-                            <div className="form-group col-half">
-                                <label htmlFor="ticketCategory" className="form-label required-field">Issue Category</label>
-                                <select
-                                    id="ticketCategory"
-                                    className="form-input"
-                                    value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    disabled={isSubmitting}
-                                >
-                                    {CATEGORIES.map((c, i) => (
-                                        <option key={i} value={c}>{c}</option>
-                                    ))}
-                                </select>
+                                )}
                             </div>
 
-                            <div className="form-group col-half">
-                                <label htmlFor="ticketPriority" className="form-label required-field">Priority Level</label>
-                                <select
-                                    id="ticketPriority"
-                                    className="form-input"
-                                    value={priority}
-                                    onChange={(e) => setPriority(e.target.value)}
-                                    disabled={isSubmitting}
-                                >
-                                    {PRIORITIES.map((p, i) => (
-                                        <option key={i} value={p.value}>{p.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
+                            {/* Quick Preset Templates */}
+                            {!isModal && (
+                                <div className="template-chips-section">
+                                    <span className="template-chips-label">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                                        <span>Quick Video Issue Presets</span>
+                                        <span style={{ fontSize: '11px', fontWeight: '500', color: 'var(--color-text-muted)', textTransform: 'none' }}>(Click any preset to pre-fill the form)</span>
+                                    </span>
+                                    <div className="template-cards-grid">
+                                        {PRESET_TEMPLATES.map((tpl, i) => (
+                                            <div
+                                                key={i}
+                                                className="template-card-tile"
+                                                onClick={() => applyTemplate(tpl)}
+                                                role="button"
+                                                tabIndex={0}
+                                            >
+                                                <div className="template-card-header">
+                                                    <span className="template-card-title">{tpl.title}</span>
+                                                    <span className={`priority-badge ${getPriorityBadgeClass(tpl.priority)}`}>{tpl.priority}</span>
+                                                </div>
+                                                <div className="template-card-subject">{tpl.subject}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                        {/* Subject Field */}
-                        <div className="form-group">
-                            <label htmlFor="ticketSubject" className="form-label required-field">
-                                Subject / Issue Title
-                            </label>
-                            <input
-                                id="ticketSubject"
-                                type="text"
-                                className={`form-input ${errors.subject ? 'is-invalid' : ''}`}
-                                placeholder="e.g., Cannot access SE2030 lecture video stream"
-                                value={subject}
-                                maxLength={200}
-                                onChange={(e) => {
-                                    setSubject(e.target.value);
-                                    if (errors.subject) setErrors({ ...errors, subject: null });
-                                }}
-                                disabled={isSubmitting}
-                            />
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                {errors.subject ? <span className="field-error">{errors.subject}</span> : <span></span>}
-                                <span className="char-counter">{subject.length} / 200</span>
-                            </div>
-                        </div>
+                            {serverError && (
+                                <div className="alert-banner alert-danger animate-fade">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                    <span>{serverError}</span>
+                                </div>
+                            )}
 
-                        {/* Student Information */}
-                        <div className="form-row">
-                            <div className="form-group col-half">
-                                <label htmlFor="studentId" className="form-label">Student / Staff ID (Optional)</label>
-                                <input
-                                    id="studentId"
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="e.g., IT20104500"
-                                    value={studentId}
-                                    onChange={(e) => setStudentId(e.target.value)}
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-                            <div className="form-group col-half">
-                                <label htmlFor="studentEmail" className="form-label">Contact Email (Optional)</label>
-                                <input
-                                    id="studentEmail"
-                                    type="email"
-                                    className={`form-input ${errors.studentEmail ? 'is-invalid' : ''}`}
-                                    placeholder="e.g., it20104500@my.sliit.lk"
-                                    value={studentEmail}
-                                    onChange={(e) => {
-                                        setStudentEmail(e.target.value);
-                                        if (errors.studentEmail) setErrors({ ...errors, studentEmail: null });
-                                    }}
-                                    disabled={isSubmitting}
-                                />
-                                {errors.studentEmail && <span className="field-error">{errors.studentEmail}</span>}
-                            </div>
-                        </div>
+                            <form onSubmit={handleSubmit} noValidate className="ticket-form">
+                                {/* Category and Priority Selectors */}
+                                <div className="form-row">
+                                    <div className="form-group col-half">
+                                        <label htmlFor="ticketCategory" className="form-label required-field">Issue Category</label>
+                                        <select
+                                            id="ticketCategory"
+                                            className="form-input"
+                                            value={category}
+                                            onChange={(e) => setCategory(e.target.value)}
+                                            disabled={isSubmitting}
+                                        >
+                                            {CATEGORIES.map((c, i) => (
+                                                <option key={i} value={c}>{c}</option>
+                                            ))}
+                                        </select>
+                                    </div>
 
-                        {/* Description Field */}
-                        <div className="form-group">
-                            <label htmlFor="ticketDescription" className="form-label required-field">
-                                Detailed Description
-                            </label>
-                            <textarea
-                                id="ticketDescription"
-                                rows="5"
-                                className={`form-input form-textarea ${errors.description ? 'is-invalid' : ''}`}
-                                placeholder="Provide a detailed explanation of the issue, including course name, lecture date, or error code..."
-                                value={description}
-                                maxLength={2000}
-                                onChange={(e) => {
-                                    setDescription(e.target.value);
-                                    if (errors.description) setErrors({ ...errors, description: null });
-                                }}
-                                disabled={isSubmitting}
-                            ></textarea>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                {errors.description ? <span className="field-error">{errors.description}</span> : <span></span>}
-                                <span className="char-counter">{description.length} / 2000</span>
-                            </div>
-                        </div>
+                                    <div className="form-group col-half">
+                                        <label className="form-label required-field">Priority Level</label>
+                                        <div className="priority-pill-selector">
+                                            {PRIORITIES.map((p) => (
+                                                <button
+                                                    key={p.value}
+                                                    type="button"
+                                                    className={`priority-pill-btn ${priority === p.value ? `active active-${p.value.toLowerCase()}` : ''}`}
+                                                    onClick={() => setPriority(p.value)}
+                                                    disabled={isSubmitting}
+                                                >
+                                                    <span className={`priority-pill-dot dot-${p.value.toLowerCase()}`}></span>
+                                                    {p.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
 
-                        {/* File Attachment Field with Dropzone and Removal */}
-                        <div className="form-group">
-                            <label className="form-label">Attach Screenshot or Document (Optional - Max 5MB)</label>
-                            {!file ? (
-                                <div className={`file-upload-dropzone ${errors.file ? 'is-invalid' : ''}`}>
+                                {/* Subject Field */}
+                                <div className="form-group">
+                                    <label htmlFor="ticketSubject" className="form-label required-field">
+                                        Subject / Video Issue Title
+                                    </label>
                                     <input
-                                        ref={fileInputRef}
-                                        id="ticketFile"
-                                        type="file"
-                                        className="file-input-hidden"
+                                        id="ticketSubject"
+                                        type="text"
+                                        className={`form-input ${errors.subject ? 'is-invalid' : ''}`}
+                                        placeholder="e.g., Video stream freezes at 14:20 in SE2030 Lecture 3"
+                                        value={subject}
+                                        maxLength={200}
                                         onChange={(e) => {
-                                            if (e.target.files.length) {
-                                                setFile(e.target.files[0]);
-                                                if (errors.file) setErrors({ ...errors, file: null });
-                                            }
+                                             setSubject(e.target.value);
+                                             if (errors.subject) setErrors({ ...errors, subject: null });
                                         }}
                                         disabled={isSubmitting}
                                     />
-                                    <label htmlFor="ticketFile" className="dropzone-label">
-                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                            <polyline points="17 8 12 3 7 8"></polyline>
-                                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                                        </svg>
-                                        <span>Click to browse or drag file (.pdf, .png, .jpg, .docx, .zip)</span>
-                                    </label>
-                                </div>
-                            ) : (
-                                <div className="attachment-preview-box animate-fade">
-                                    <div className="attachment-preview-info">
-                                        <span>📎</span>
-                                        <span><strong>{file.name}</strong> ({(file.size / 1024).toFixed(1)} KB)</span>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        {errors.subject ? <span className="field-error">{errors.subject}</span> : <span></span>}
+                                        <span className={`char-counter ${subject.length > 180 ? 'text-danger' : ''}`}>{subject.length} / 200</span>
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="attachment-remove-btn"
-                                        onClick={() => {
-                                            setFile(null);
-                                            if (fileInputRef.current) fileInputRef.current.value = '';
+                                </div>
+
+                                {/* Student Information */}
+                                <div className="form-row">
+                                    <div className="form-group col-half">
+                                        <label htmlFor="studentId" className="form-label">Student / User ID (Optional)</label>
+                                        <input
+                                            id="studentId"
+                                            type="text"
+                                            className="form-input"
+                                            placeholder="e.g., IT20104500"
+                                            value={studentId}
+                                            onChange={(e) => setStudentId(e.target.value)}
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
+                                    <div className="form-group col-half">
+                                        <label htmlFor="studentEmail" className="form-label">Contact Email (Optional)</label>
+                                        <input
+                                            id="studentEmail"
+                                            type="email"
+                                            className={`form-input ${errors.studentEmail ? 'is-invalid' : ''}`}
+                                            placeholder="e.g., it20104500@my.sliit.lk"
+                                            value={studentEmail}
+                                            onChange={(e) => {
+                                                setStudentEmail(e.target.value);
+                                                if (errors.studentEmail) setErrors({ ...errors, studentEmail: null });
+                                            }}
+                                            disabled={isSubmitting}
+                                        />
+                                        {errors.studentEmail && <span className="field-error">{errors.studentEmail}</span>}
+                                    </div>
+                                </div>
+
+                                {/* Description Field */}
+                                <div className="form-group">
+                                    <label htmlFor="ticketDescription" className="form-label required-field">
+                                        Detailed Problem Description
+                                    </label>
+                                    <textarea
+                                        id="ticketDescription"
+                                        rows="5"
+                                        className={`form-input form-textarea ${errors.description ? 'is-invalid' : ''}`}
+                                        placeholder="Please provide specifics: Lecture title/ID, timestamp where issue happened (e.g. 14:30), browser used, and any player error messages..."
+                                        value={description}
+                                        maxLength={2000}
+                                        onChange={(e) => {
+                                            setDescription(e.target.value);
+                                            if (errors.description) setErrors({ ...errors, description: null });
                                         }}
-                                    >
-                                        ✕ Remove File
+                                        disabled={isSubmitting}
+                                    ></textarea>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        {errors.description ? <span className="field-error">{errors.description}</span> : <span></span>}
+                                        <span className={`char-counter ${description.length > 1900 ? 'text-danger' : ''}`}>{description.length} / 2000</span>
+                                    </div>
+                                </div>
+
+                                {/* File Attachment Field with Dropzone and Removal */}
+                                <div className="form-group">
+                                    <label className="form-label">Attachment Documentation (Player Screenshots or Error Logs)</label>
+                                    {!file ? (
+                                        <div className={`file-upload-dropzone ${errors.file ? 'is-invalid' : ''}`}>
+                                            <input
+                                                ref={fileInputRef}
+                                                id="ticketFile"
+                                                type="file"
+                                                className="file-input-hidden"
+                                                onChange={(e) => {
+                                                    if (e.target.files.length) {
+                                                        setFile(e.target.files[0]);
+                                                        if (errors.file) setErrors({ ...errors, file: null });
+                                                    }
+                                                }}
+                                                disabled={isSubmitting}
+                                            />
+                                            <label htmlFor="ticketFile" className="dropzone-label">
+                                                <div className="dropzone-icon-circle">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                        <polyline points="17 8 12 3 7 8"></polyline>
+                                                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                                                    </svg>
+                                                </div>
+                                                <span className="dropzone-title">Click to upload or drag & drop file</span>
+                                                <span className="dropzone-hint">Upload player error screenshots, PDF notes, or log archives (Max 5MB)</span>
+                                                <div className="dropzone-badges">
+                                                    <span className="dropzone-badge">PNG</span>
+                                                    <span className="dropzone-badge">JPG</span>
+                                                    <span className="dropzone-badge">PDF</span>
+                                                    <span className="dropzone-badge">DOCX</span>
+                                                    <span className="dropzone-badge">ZIP</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    ) : (
+                                        <div className="attachment-preview-box animate-fade">
+                                            <div className="attachment-preview-info">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--color-primary)' }}><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                                <div>
+                                                    <div style={{ fontWeight: '700' }}>{file.name}</div>
+                                                    <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{(file.size / 1024).toFixed(1)} KB • Attached successfully</div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="attachment-remove-btn"
+                                                onClick={() => {
+                                                    setFile(null);
+                                                    if (fileInputRef.current) fileInputRef.current.value = '';
+                                                }}
+                                            >
+                                                Remove File
+                                            </button>
+                                        </div>
+                                    )}
+                                    {errors.file && <span className="field-error">{errors.file}</span>}
+                                </div>
+
+                                {/* Submit Action Controls */}
+                                <div className="form-actions" style={{ marginTop: '16px' }}>
+                                    <button type="submit" className="btn-submit-ticket" disabled={isSubmitting}>
+                                        {isSubmitting ? (
+                                            <span className="loading-spinner-wrapper">
+                                                <span className="spinner"></span> Logging Support Ticket...
+                                            </span>
+                                        ) : (
+                                            <span>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ verticalAlign: 'text-bottom', marginRight: '8px' }}>
+                                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                                </svg>
+                                                Submit Ticket & Generate eTicketReceipt
+                                            </span>
+                                        )}
                                     </button>
                                 </div>
-                            )}
-                            {errors.file && <span className="field-error">{errors.file}</span>}
+                            </form>
                         </div>
+                    </div>
 
-                        {/* Submit Action Controls */}
-                        <div className="form-actions">
-                            <button type="submit" className="btn btn-primary btn-submit-ticket" disabled={isSubmitting}>
-                                {isSubmitting ? (
-                                    <span className="loading-spinner-wrapper">
-                                        <span className="spinner"></span> Processing Support Ticket...
-                                    </span>
-                                ) : (
-                                    <span>Submit Ticket & Generate eTicketReceipt</span>
-                                )}
-                            </button>
+                    {/* Right Helpful Guidelines Sidebar */}
+                    {!isModal && (
+                        <div className="support-submit-sidebar animate-fade">
+                            {/* Tips Card */}
+                            <div className="support-sidebar-card">
+                                <div className="sidebar-card-title">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                    Video Troubleshooting Tips
+                                </div>
+                                <div className="sidebar-tips-list">
+                                    <div className="sidebar-tip-item">
+                                        <span>•</span>
+                                        <span>Include exact <strong>Lecture Title</strong> or module code (e.g. SE2030 Lecture 2).</span>
+                                    </div>
+                                    <div className="sidebar-tip-item">
+                                        <span>•</span>
+                                        <span>Specify <strong>playback timestamp</strong> (e.g. 14:30) if reporting stream freeze.</span>
+                                    </div>
+                                    <div className="sidebar-tip-item">
+                                        <span>•</span>
+                                        <span>Mention your <strong>browser & resolution</strong> (e.g., Chrome, 1080p stream).</span>
+                                    </div>
+                                    <div className="sidebar-tip-item">
+                                        <span>•</span>
+                                        <span>Attach player screenshots or browser console error messages.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Response SLA Guidelines Card */}
+                            <div className="support-sidebar-card">
+                                <div className="sidebar-card-title">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    Streaming SLA Response Times
+                                </div>
+                                <div className="sla-guide-row">
+                                    <span className="priority-badge priority-urgent">Urgent</span>
+                                    <strong style={{ color: '#dc2626' }}>Under 2 Hours</strong>
+                                </div>
+                                <div className="sla-guide-row">
+                                    <span className="priority-badge priority-high">High</span>
+                                    <strong style={{ color: '#ea580c' }}>Under 6 Hours</strong>
+                                </div>
+                                <div className="sla-guide-row">
+                                    <span className="priority-badge priority-medium">Medium</span>
+                                    <strong style={{ color: '#0284c7' }}>Within 12 Hours</strong>
+                                </div>
+                                <div className="sla-guide-row">
+                                    <span className="priority-badge priority-low">Low</span>
+                                    <span style={{ color: 'var(--color-text-muted)' }}>Within 24 Hours</span>
+                                </div>
+                            </div>
+
+                            {/* Direct Contact Card */}
+                            <div className="support-sidebar-card">
+                                <div className="sidebar-card-title">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                    Media & Streaming Operations
+                                </div>
+                                <div className="contact-direct-box">
+                                    <div className="contact-direct-link">
+                                        EduFrame Media & Cloud Operations
+                                    </div>
+                                    <div className="contact-direct-link">
+                                        Ext: +94 11 754 4801
+                                    </div>
+                                    <div className="contact-direct-link">
+                                        support-media@sliit.lk
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </form>
+                    )}
                 </div>
             );
         };
@@ -885,36 +1003,38 @@
 
             return (
                 <div className="track-ticket-view animate-fade">
-                    <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-                        <h2>Track Support Ticket Status</h2>
-                        <p className="form-subtitle">Enter your 7-digit Ticket ID (e.g. TKT-1001) to view real-time progress and staff response.</p>
-                    </div>
-
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            handleTrackSearch();
-                        }}
-                        className="track-search-box"
-                    >
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="Enter Ticket ID (e.g., TKT-1001)"
-                            value={trackSearchId}
-                            onChange={(e) => setTrackSearchId(e.target.value)}
-                            disabled={isTracking}
-                        />
-                        <button type="submit" className="btn btn-primary" style={{ padding: '0 24px' }} disabled={isTracking}>
-                            {isTracking ? 'Searching...' : 'Track Ticket'}
-                        </button>
-                    </form>
-
-                    {trackError && (
-                        <div className="alert-banner alert-danger animate-fade">
-                            <span>{trackError}</span>
+                    <div className="track-search-card">
+                        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                            <h2>Track Support Ticket Status</h2>
+                            <p className="form-subtitle">Enter your official Ticket ID (e.g., TKT-1001) to view real-time progress, SLA milestones, and staff resolution remarks.</p>
                         </div>
-                    )}
+
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                handleTrackSearch();
+                            }}
+                            className="track-search-box"
+                        >
+                            <input
+                                type="text"
+                                className="form-input track-search-input"
+                                placeholder="Enter Ticket ID (e.g., TKT-1001)"
+                                value={trackSearchId}
+                                onChange={(e) => setTrackSearchId(e.target.value)}
+                                disabled={isTracking}
+                            />
+                            <button type="submit" className="btn btn-primary" style={{ padding: '0 28px', fontWeight: '700' }} disabled={isTracking}>
+                                {isTracking ? 'Searching...' : 'Track Ticket'}
+                            </button>
+                        </form>
+
+                        {trackError && (
+                            <div className="alert-banner alert-danger animate-fade" style={{ maxWidth: '650px', margin: '20px auto 0 auto' }}>
+                                <span>{trackError}</span>
+                            </div>
+                        )}
+                    </div>
 
                     {trackedTicket && (
                         <div className="tracked-ticket-card animate-fade">
@@ -953,8 +1073,9 @@
                             <h2>My Recent Support Tickets</h2>
                             <p className="form-subtitle">Tickets submitted from this browser session.</p>
                         </div>
-                        <button className="btn btn-outline-primary toolbar-btn" onClick={fetchMyTickets}>
-                            🔄 Refresh
+                        <button className="btn btn-outline-primary toolbar-btn" onClick={fetchMyTickets} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            Refresh
                         </button>
                     </div>
 
@@ -1008,7 +1129,7 @@
                                                         handleTrackSearch(t.ticketId);
                                                     }}
                                                 >
-                                                    View Status ➔
+                                                    View Status
                                                 </button>
                                             </td>
                                         </tr>
@@ -1092,8 +1213,9 @@
                                 Filter
                             </button>
                         </div>
-                        <button className="btn btn-outline-primary toolbar-btn" onClick={fetchConsoleData}>
-                            🔄 Refresh
+                        <button className="btn btn-outline-primary toolbar-btn" onClick={fetchConsoleData} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            Refresh
                         </button>
                     </div>
 
@@ -1154,7 +1276,7 @@
                                                             title="Download Attachment"
                                                             download
                                                         >
-                                                            📎
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                                                         </a>
                                                     )}
                                                     <button
@@ -1162,7 +1284,7 @@
                                                         title="Delete Ticket"
                                                         onClick={() => handleDeleteTicket(t.ticketId)}
                                                     >
-                                                        🗑️
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                                     </button>
                                                 </div>
                                             </td>
@@ -1179,7 +1301,9 @@
                             <div className="ticket-admin-modal-box">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
                                     <h3>Respond to Ticket: {selectedTicketForEdit.ticketId}</h3>
-                                    <button className="modal-close-btn" onClick={() => setSelectedTicketForEdit(null)}>✕</button>
+                                    <button className="modal-close-btn" onClick={() => setSelectedTicketForEdit(null)} aria-label="Close">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    </button>
                                 </div>
 
                                 <div style={{ backgroundColor: 'var(--color-bg-input)', padding: '14px', borderRadius: 'var(--radius-md)', marginBottom: '18px' }}>
@@ -1187,8 +1311,9 @@
                                     <p style={{ fontSize: '13px', color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>{selectedTicketForEdit.description}</p>
                                     {selectedTicketForEdit.attachmentName && (
                                         <div style={{ marginTop: '8px', fontSize: '12px' }}>
-                                            <a href={`/api/tickets/${selectedTicketForEdit.ticketId}/attachment`} download style={{ color: 'var(--color-secondary-hover)', fontWeight: '600' }}>
-                                                📎 Download Attachment ({selectedTicketForEdit.attachmentName})
+                                            <a href={`/api/tickets/${selectedTicketForEdit.ticketId}/attachment`} download style={{ color: 'var(--color-secondary-hover)', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                                                Download Attachment ({selectedTicketForEdit.attachmentName})
                                             </a>
                                         </div>
                                     )}
@@ -1301,15 +1426,6 @@
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                             My Recent Tickets
                         </button>
-
-                        <button
-                            className={`support-tab-btn ${activeTab === 'console' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('console')}
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                            Help Desk Console
-                            <span className="support-tab-badge">Staff</span>
-                        </button>
                     </div>
                 )}
 
@@ -1318,14 +1434,13 @@
                     {activeTab === 'submit' && renderSubmitForm()}
                     {activeTab === 'track' && renderTrackTicket()}
                     {activeTab === 'my-tickets' && renderMyTickets()}
-                    {activeTab === 'console' && renderHelpDeskConsole()}
                 </div>
 
                 {/* Toast Notification Container */}
                 <div className="toast-container">
                     {toasts.map((t) => (
                         <div key={t.id} className="toast-item animate-fade">
-                            <span>ℹ️</span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, color: 'var(--color-secondary)' }}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                             <span>{t.message}</span>
                         </div>
                     ))}
