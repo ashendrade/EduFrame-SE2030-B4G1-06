@@ -3444,6 +3444,236 @@ textarea.form-control {
     color: var(--color-secondary);
 }
 
+/* ==========================================
+   STAFF DEDICATED TICKET REVIEW & REPLY PAGE
+   ========================================== */
+
+.staff-breadcrumb-bar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.staff-detail-banner {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.staff-detail-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.staff-ticket-id-badge {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.btn-copy-ticket {
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: var(--transition);
+}
+
+.btn-copy-ticket:hover {
+    border-color: var(--color-secondary);
+    color: var(--color-primary);
+    background: #ffffff;
+}
+
+.staff-banner-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.category-badge {
+    background: rgba(12, 35, 64, 0.06);
+    color: var(--color-primary);
+    border: 1px solid rgba(12, 35, 64, 0.15);
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.staff-detail-header-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Review Grid (2 columns on desktop, 1 on mobile) */
+.staff-review-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+@media (max-width: 992px) {
+    .staff-review-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.staff-card {
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.staff-card-header {
+    background: #ffffff;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.staff-card-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.staff-card-body {
+    padding: 20px;
+}
+
+.staff-field-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--color-text-muted);
+    margin-bottom: 6px;
+    display: block;
+}
+
+.staff-field-desc {
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--color-text);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.staff-attachment-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.attachment-icon-pill {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-md);
+    background: rgba(242, 169, 0, 0.15);
+    color: var(--color-secondary-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Action Card (Right Side Sticky) */
+.staff-action-card {
+    background: #ffffff;
+    border: 2px solid var(--color-secondary);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 24px;
+}
+
+.staff-action-card-header {
+    background: linear-gradient(180deg, rgba(242, 169, 0, 0.08) 0%, rgba(255,255,255,0) 100%);
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.staff-quick-templates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.btn-template-chip {
+    background: var(--color-bg-input);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-template-chip:hover {
+    border-color: var(--color-secondary);
+    background: rgba(242, 169, 0, 0.12);
+    color: var(--color-primary-dark);
+}
+
+.btn-delete-link {
+    background: transparent;
+    border: none;
+    color: var(--color-danger);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: var(--transition);
+}
+
+.btn-delete-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+
 
 
 
