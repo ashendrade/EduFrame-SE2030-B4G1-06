@@ -165,4 +165,20 @@ public class PageController {
     public String support() {
         return "support";
     }
+
+    @GetMapping("/staff/helpdesk")
+    public String staffHelpDesk() {
+        return "staff-helpdesk";
+    }
+
+    @GetMapping("/staff/ticket/{ticketId}")
+    public String staffTicketReview(@PathVariable("ticketId") String ticketId, Model model) {
+        model.addAttribute("ticketId", ticketId);
+        return "staff-ticket-review";
+    }
+
+    @GetMapping("/staff/login")
+    public String staffLogin() {
+        return "redirect:/login?role=staff";
+    }
 }
