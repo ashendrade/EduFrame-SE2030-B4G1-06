@@ -75,9 +75,9 @@
         }
     ];
 
-    function SupportTicket({ isModal = false, onClose }) {
-        // Active View/Tab (If isModal=true, default to 'submit')
-        const [activeTab, setActiveTab] = useState('submit');
+    function SupportTicket({ isModal = false, onClose, isStaffConsole = false }) {
+        // Active View/Tab (If isStaffConsole=true, default to 'helpdesk', if isModal=true, default to 'submit')
+        const [activeTab, setActiveTab] = useState(isStaffConsole ? 'helpdesk' : 'submit');
 
         // Form field state
         const [subject, setSubject] = useState('');
@@ -215,7 +215,10 @@
             if (activeTab === 'my-tickets') {
                 fetchMyTickets();
             }
-        }, [activeTab]);
+            if (activeTab === 'helpdesk' || isStaffConsole) {
+                fetchConsoleData();
+            }
+        }, [activeTab, isStaffConsole, consoleStatus, consoleCategory]);
 
         /**
          * Validates form input fields according to UC-05 rules.
@@ -1145,33 +1148,72 @@
         // ==========================================
         // RENDER: HELP DESK MANAGEMENT CONSOLE (ADMIN)
         // ==========================================
+        // HELP DESK CONSOLE VIEW (UC-05 STAFF & ADMIN MANAGEMENT)
+        // ==========================================
         const renderHelpDeskConsole = () => {
             return (
                 <div className="helpdesk-console-view animate-fade">
-                    <div style={{ marginBottom: '24px' }}>
-                        <h2>Support Desk Management Console</h2>
-                        <p className="form-subtitle">Staff administration panel for reviewing tickets, dispatching responses, and tracking resolutions.</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+                        <div>
+                            <h2>Incident & Support Desk Console</h2>
+                            <p className="form-subtitle">Staff management panel for student video streaming tickets, resolution dispatching, and technical workflows.</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                className="btn btn-outline-light"
+                                style={{ fontSize: '13px', padding: '8px 16px', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                                onClick={fetchConsoleData}
+                            >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                                <span>Sync Tickets</span>
+                            </button>
+                        </div>
                     </div>
 
-                    {/* KPI Cards Grid */}
+                    {/* KPI Cards Grid (Clickable for instant filtering) */}
                     <div className="kpi-grid">
-                        <div className="kpi-card kpi-total">
+                        <div 
+                            className={`kpi-card kpi-total ${consoleStatus === 'All' ? 'active-filter' : ''}`}
+                            onClick={() => { setConsoleStatus('All'); }}
+                            style={{ cursor: 'pointer' }}
+                            title="Click to view all tickets"
+                        >
                             <span className="kpi-label">Total Tickets</span>
                             <span className="kpi-number">{stats.totalTickets}</span>
                         </div>
-                        <div className="kpi-card kpi-open">
+                        <div 
+                            className={`kpi-card kpi-open ${consoleStatus === 'Open' ? 'active-filter' : ''}`}
+                            onClick={() => { setConsoleStatus('Open'); }}
+                            style={{ cursor: 'pointer' }}
+                            title="Click to filter Open tickets"
+                        >
                             <span className="kpi-label">Open / Pending</span>
                             <span className="kpi-number">{stats.openTickets}</span>
                         </div>
-                        <div className="kpi-card kpi-inprogress">
+                        <div 
+                            className={`kpi-card kpi-inprogress ${consoleStatus === 'In Progress' ? 'active-filter' : ''}`}
+                            onClick={() => { setConsoleStatus('In Progress'); }}
+                            style={{ cursor: 'pointer' }}
+                            title="Click to filter In-Progress tickets"
+                        >
                             <span className="kpi-label">In Progress</span>
                             <span className="kpi-number">{stats.inProgressTickets}</span>
                         </div>
-                        <div className="kpi-card kpi-resolved">
+                        <div 
+                            className={`kpi-card kpi-resolved ${consoleStatus === 'Resolved' ? 'active-filter' : ''}`}
+                            onClick={() => { setConsoleStatus('Resolved'); }}
+                            style={{ cursor: 'pointer' }}
+                            title="Click to filter Resolved tickets"
+                        >
                             <span className="kpi-label">Resolved</span>
                             <span className="kpi-number">{stats.resolvedTickets}</span>
                         </div>
-                        <div className="kpi-card kpi-closed">
+                        <div 
+                            className={`kpi-card kpi-closed ${consoleStatus === 'Closed' ? 'active-filter' : ''}`}
+                            onClick={() => { setConsoleStatus('Closed'); }}
+                            style={{ cursor: 'pointer' }}
+                            title="Click to filter Closed tickets"
+                        >
                             <span className="kpi-label">Closed</span>
                             <span className="kpi-number">{stats.closedTickets}</span>
                         </div>
@@ -1183,7 +1225,7 @@
                             <input
                                 type="text"
                                 className="toolbar-input"
-                                placeholder="Search ID, student, subject..."
+                                placeholder="Search by Ticket ID, student ID, email, video issue..."
                                 value={consoleSearch}
                                 onChange={(e) => setConsoleSearch(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && fetchConsoleData()}
@@ -1210,13 +1252,9 @@
                                 ))}
                             </select>
                             <button className="btn btn-primary toolbar-btn" onClick={fetchConsoleData}>
-                                Filter
+                                Apply Filter
                             </button>
                         </div>
-                        <button className="btn btn-outline-primary toolbar-btn" onClick={fetchConsoleData} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                            Refresh
-                        </button>
                     </div>
 
                     {/* Tickets Table */}
@@ -1240,6 +1278,7 @@
                                         <th>Subject</th>
                                         <th>Priority</th>
                                         <th>Status</th>
+                                        <th>Reply Status</th>
                                         <th>Date</th>
                                         <th>Actions</th>
                                     </tr>
@@ -1253,22 +1292,33 @@
                                                 {t.studentEmail && <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{t.studentEmail}</div>}
                                             </td>
                                             <td>{t.category || 'General'}</td>
-                                            <td style={{ maxWidth: '260px' }}>
+                                            <td style={{ maxWidth: '240px' }}>
                                                 <div style={{ fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.subject}</div>
                                                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.description}</div>
                                             </td>
                                             <td><span className={getPriorityBadgeClass(t.priority)}>{t.priority || 'Medium'}</span></td>
                                             <td><span className={getStatusBadgeClass(t.status)}>{t.status || 'Open'}</span></td>
+                                            <td>
+                                                {t.adminResponse ? (
+                                                    <span style={{ display: 'inline-block', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#059669', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700' }}>
+                                                        Replied
+                                                    </span>
+                                                ) : (
+                                                    <span style={{ display: 'inline-block', backgroundColor: 'rgba(239, 68, 68, 0.12)', color: '#dc2626', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '700' }}>
+                                                        Needs Reply
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td>{t.createdAt ? new Date(t.createdAt).toLocaleDateString() : 'N/A'}</td>
                                             <td>
                                                 <div className="ticket-row-actions">
-                                                    <button
+                                                    <a
                                                         className="action-icon-btn"
-                                                        title="Respond & Update Status"
-                                                        onClick={() => handleOpenEditModal(t)}
+                                                        href={`/staff/ticket/${t.ticketId}`}
+                                                        title="Open full Review & Reply page"
                                                     >
-                                                        Respond
-                                                    </button>
+                                                        Review &amp; Reply
+                                                    </a>
                                                     {t.attachmentName && (
                                                         <a
                                                             href={`/api/tickets/${t.ticketId}/attachment`}
@@ -1300,7 +1350,7 @@
                         <div className="ticket-admin-modal-backdrop animate-fade">
                             <div className="ticket-admin-modal-box">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
-                                    <h3>Respond to Ticket: {selectedTicketForEdit.ticketId}</h3>
+                                    <h3>Reply to Student Ticket: {selectedTicketForEdit.ticketId}</h3>
                                     <button className="modal-close-btn" onClick={() => setSelectedTicketForEdit(null)} aria-label="Close">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                     </button>
@@ -1309,11 +1359,14 @@
                                 <div style={{ backgroundColor: 'var(--color-bg-input)', padding: '14px', borderRadius: 'var(--radius-md)', marginBottom: '18px' }}>
                                     <div style={{ fontWeight: '700', color: 'var(--color-primary)', marginBottom: '4px' }}>{selectedTicketForEdit.subject}</div>
                                     <p style={{ fontSize: '13px', color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>{selectedTicketForEdit.description}</p>
+                                    <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                                        Student ID: <strong>{selectedTicketForEdit.studentId || 'Anonymous'}</strong> • Contact: <strong>{selectedTicketForEdit.studentEmail || 'N/A'}</strong>
+                                    </div>
                                     {selectedTicketForEdit.attachmentName && (
                                         <div style={{ marginTop: '8px', fontSize: '12px' }}>
                                             <a href={`/api/tickets/${selectedTicketForEdit.ticketId}/attachment`} download style={{ color: 'var(--color-secondary-hover)', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
-                                                Download Attachment ({selectedTicketForEdit.attachmentName})
+                                                Download Student Attachment ({selectedTicketForEdit.attachmentName})
                                             </a>
                                         </div>
                                     )}
@@ -1359,12 +1412,76 @@
                                     />
                                 </div>
 
+                                {/* Quick Response Snippets */}
+                                <div style={{ marginBottom: '12px' }}>
+                                    <label className="form-label" style={{ fontSize: '11px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '6px' }}>
+                                        Quick Resolution Templates (Click to fill):
+                                    </label>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-dark"
+                                            style={{ fontSize: '11px', padding: '4px 8px' }}
+                                            onClick={() => {
+                                                setEditAdminResponse("We have purged the video CDN streaming cache for this lecture. Please refresh your player with Ctrl+F5.");
+                                                setEditStatus("Resolved");
+                                            }}
+                                        >
+                                            CDN Cache Purged
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-dark"
+                                            style={{ fontSize: '11px', padding: '4px 8px' }}
+                                            onClick={() => {
+                                                setEditAdminResponse("Your student module enrollment permissions have been synchronized and verified. The lecture video is now unlocked.");
+                                                setEditStatus("Resolved");
+                                            }}
+                                        >
+                                            Access Unlocked
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-dark"
+                                            style={{ fontSize: '11px', padding: '4px 8px' }}
+                                            onClick={() => {
+                                                setEditAdminResponse("The audio and video presentation stream synchronization has been re-encoded and calibrated by our media team.");
+                                                setEditStatus("Resolved");
+                                            }}
+                                        >
+                                            Audio Desync Fixed
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-dark"
+                                            style={{ fontSize: '11px', padding: '4px 8px' }}
+                                            onClick={() => {
+                                                setEditAdminResponse("Closed captions and subtitle tracks have been generated and attached to this lecture recording.");
+                                                setEditStatus("Resolved");
+                                            }}
+                                        >
+                                            Captions Added
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn-outline-dark"
+                                            style={{ fontSize: '11px', padding: '4px 8px' }}
+                                            onClick={() => {
+                                                setEditAdminResponse("Our engineering team is currently investigating this playback issue with the video stream server.");
+                                                setEditStatus("In Progress");
+                                            }}
+                                        >
+                                            Investigating
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div className="form-group" style={{ marginBottom: '20px' }}>
-                                    <label className="form-label">Staff Resolution Remarks / Response</label>
+                                    <label className="form-label required-field">Staff Resolution Remarks / Response to Student</label>
                                     <textarea
                                         rows="4"
                                         className="form-input form-textarea"
-                                        placeholder="Type resolution feedback, troubleshooting steps, or status updates to student..."
+                                        placeholder="Type official reply, troubleshooting instructions, or resolution remarks to student..."
                                         value={editAdminResponse}
                                         onChange={(e) => setEditAdminResponse(e.target.value)}
                                     ></textarea>
@@ -1385,7 +1502,7 @@
                                         onClick={handleSaveAdminEdit}
                                         disabled={isSavingEdit}
                                     >
-                                        {isSavingEdit ? 'Saving Changes...' : 'Save & Update Ticket'}
+                                        {isSavingEdit ? 'Saving & Sending Reply...' : 'Send Reply & Update Status'}
                                     </button>
                                 </div>
                             </div>
@@ -1399,9 +1516,9 @@
         // MAIN COMPONENT RENDER
         // ==========================================
         return (
-            <div className={`support-portal-container ${isModal ? 'modal-mode' : ''}`}>
-                {/* Tab Navigation Header (Only in standalone page) */}
-                {!isModal && (
+            <div className={`support-portal-container ${isModal ? 'modal-mode' : ''} ${isStaffConsole ? 'staff-portal-mode' : ''}`}>
+                {/* Tab Navigation Header (Only in Student Standalone Portal) */}
+                {!isModal && !isStaffConsole && (
                     <div className="support-nav-tabs">
                         <button
                             className={`support-tab-btn ${activeTab === 'submit' ? 'active' : ''}`}
@@ -1431,9 +1548,15 @@
 
                 {/* Tab Content Container */}
                 <div className="support-tab-content">
-                    {activeTab === 'submit' && renderSubmitForm()}
-                    {activeTab === 'track' && renderTrackTicket()}
-                    {activeTab === 'my-tickets' && renderMyTickets()}
+                    {isStaffConsole ? (
+                        renderHelpDeskConsole()
+                    ) : (
+                        <>
+                            {activeTab === 'submit' && renderSubmitForm()}
+                            {activeTab === 'track' && renderTrackTicket()}
+                            {activeTab === 'my-tickets' && renderMyTickets()}
+                        </>
+                    )}
                 </div>
 
                 {/* Toast Notification Container */}
@@ -1452,17 +1575,22 @@
     // Expose component to global scope for Thymeleaf mount
     window.SupportTicketComponent = SupportTicket;
 
-    // Auto-mount on element with id "support-ticket-root"
-    // NOTE: When loaded via Babel standalone (type="text/babel" with src=), Babel async-fetches
-    // and transforms this file AFTER DOMContentLoaded fires. By the time this code runs,
-    // the DOM is already fully ready — so we mount directly without waiting for DOMContentLoaded.
+    // Auto-mount on element with id "support-ticket-root" (Student mode) or "staff-helpdesk-root" (Staff mode)
     (function mountSupportPortal() {
-        const rootEl = document.getElementById('support-ticket-root');
-        if (rootEl && window.ReactDOM) {
-            const root = ReactDOM.createRoot(rootEl);
-            root.render(React.createElement(SupportTicket, { isModal: false }));
-        } else {
-            // Fallback: if somehow called before DOM is ready, wait a tick
+        const studentRootEl = document.getElementById('support-ticket-root');
+        if (studentRootEl && window.ReactDOM) {
+            const root = ReactDOM.createRoot(studentRootEl);
+            root.render(React.createElement(SupportTicket, { isModal: false, isStaffConsole: false }));
+        }
+
+        const staffRootEl = document.getElementById('staff-helpdesk-root');
+        if (staffRootEl && window.ReactDOM) {
+            const root = ReactDOM.createRoot(staffRootEl);
+            root.render(React.createElement(SupportTicket, { isModal: false, isStaffConsole: true }));
+        }
+
+        if (!studentRootEl && !staffRootEl) {
+            // Fallback retry if called before DOM ready
             setTimeout(mountSupportPortal, 50);
         }
     })();
