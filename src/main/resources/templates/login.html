@@ -59,17 +59,64 @@
                     You have successfully signed out of the portal.
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-bottom: 20px; font-size: 15px;">Sign In as Student</button>
+                <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width: 100%; padding: 12px; margin-bottom: 20px; font-size: 15px; font-weight: 700;">Sign In as Student</button>
                 
+                <!-- Quick Demo Login Helpers -->
+                <div style="background-color: var(--color-bg); border: 1px dashed var(--color-border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
+                    <div style="font-size: 12px; font-weight: 700; color: var(--color-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        Quick Demo Credentials (Click to auto-fill):
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <button type="button" class="demo-fill-btn" onclick="fillCredentials('student', 'student123', 'student')" style="background: none; border: 1px solid var(--color-border); padding: 6px 10px; border-radius: var(--radius-sm); font-size: 12px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; color: var(--color-text);">
+                            <span><strong>Student:</strong> student / student123</span>
+                            <span style="color: var(--color-primary); font-weight: 600;">Student Portal &rarr;</span>
+                        </button>
+                        <button type="button" class="demo-fill-btn" onclick="fillCredentials('staff', 'staff123', 'staff')" style="background: none; border: 1px solid var(--color-secondary); padding: 6px 10px; border-radius: var(--radius-sm); font-size: 12px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; color: var(--color-text); background-color: rgba(242, 169, 0, 0.05);">
+                            <span><strong>Staff Officer:</strong> staff / staff123</span>
+                            <span style="color: var(--color-secondary); font-weight: 700;">Help Desk Console &rarr;</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div style="text-align: center; font-size: 12px; color: var(--color-text-muted); border-top: 1px solid var(--color-border); padding-top: 16px;">
-                    Having trouble logging in? <br>
-                    Contact the SLIIT IT helpdesk at <a href="mailto:support@sliit.lk" style="color: var(--color-primary); font-weight: 600;">support@sliit.lk</a> or call +94 11 754 4801.
+                    Staff members can access the ticket console directly at <a th:href="@{/staff/helpdesk}" style="color: var(--color-secondary); font-weight: 600;">/staff/helpdesk</a>. <br>
+                    Need assistance? Contact <a href="mailto:support-media@sliit.lk" style="color: var(--color-primary); font-weight: 600;">support-media@sliit.lk</a>.
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Standard Scripts -->
+    <!-- Script to auto-fill credentials and handle tab switching -->
+    <script>
+        function fillCredentials(user, pass, role) {
+            document.getElementById('username').value = user;
+            document.getElementById('password').value = pass;
+            const roleInput = document.getElementById('loginRole');
+            if (roleInput) roleInput.value = role;
+
+            document.querySelectorAll('.login-tab').forEach(t => {
+                if (t.getAttribute('data-role') === role) {
+                    t.classList.add('active');
+                } else {
+                    t.classList.remove('active');
+                }
+            });
+
+            const btn = document.getElementById('loginSubmitBtn');
+            if (btn) {
+                btn.textContent = role === 'staff' ? 'Sign In to Staff Help Desk Console' : 'Sign In as Student';
+            }
+        }
+
+        // Auto select tab based on query param ?role=staff
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('role') === 'staff') {
+                fillCredentials('staff', 'staff123', 'staff');
+            }
+        });
+    </script>
     <script th:src="@{/js/main.js}"></script>
 </body>
 </html>
