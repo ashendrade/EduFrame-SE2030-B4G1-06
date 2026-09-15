@@ -14,7 +14,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/browse", "/play", "/play/**", "/upload", "/login", "/support", "/api/tickets/**", "/h2-console/**", "/css/**", "/js/**", "/images/**").permitAll()
+                .requestMatchers("/", "/browse", "/play", "/play/**", "/upload", "/login", "/support", "/announcements", "/api/announcements/**", "/api/tickets/**", "/h2-console/**", "/css/**", "/js/**", "/images/**").permitAll()
                 .anyRequest().authenticated()
             )
             .headers(headers -> headers.frameOptions(frame -> frame.disable()))

@@ -165,4 +165,9 @@ public class PageController {
     public String support() {
         return "support";
     }
+
+    @GetMapping("/announcements")
+    public String announcements() {
+        return "announcements";
+    }
 }
