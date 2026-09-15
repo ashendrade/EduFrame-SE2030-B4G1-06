@@ -5,6 +5,7 @@ package com.eduframepackage.eduframe.model;
  */
 public enum UserRole {
     STUDENT,
+    TEACHER,
     LECTURER,
     ADMIN
 }

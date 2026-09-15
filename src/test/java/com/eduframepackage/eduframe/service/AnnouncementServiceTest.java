@@ -3,6 +3,7 @@ package com.eduframepackage.eduframe.service;
 import com.eduframepackage.eduframe.dto.AnnouncementDTO;
 import com.eduframepackage.eduframe.model.PostStatus;
 import com.eduframepackage.eduframe.model.PostType;
+import com.eduframepackage.eduframe.model.UserRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,36 @@ class AnnouncementServiceTest {
         List<String> log = notificationService.getDispatchedLog();
         assertFalse(log.isEmpty());
         assertTrue(log.stream().anyMatch(msg -> msg.contains("SE2030 Sprint 4 Review Guidelines")));
+    }
+
+    @Test
+    @DisplayName("Should enforce role permissions for Teacher and Student")
+    void testRolePermissions() {
+        AnnouncementDTO ann = new AnnouncementDTO();
+        ann.setType(PostType.ANNOUNCEMENT);
+        ann.setTitle("Teacher Notice");
+        ann.setContent("Announcement created by teacher.");
+        ann.setCourseId("SE2030");
+
+        // Teacher CAN create announcement
+        assertDoesNotThrow(() -> announcementService.createPost(ann, UserRole.TEACHER));
+
+        AnnouncementDTO evt = new AnnouncementDTO();
+        evt.setType(PostType.EVENT);
+        evt.setTitle("Teacher Event");
+        evt.setContent("Event attempt by teacher.");
+        evt.setCourseId("SE2030");
+        evt.setEventDate(LocalDate.now().plusDays(2));
+        evt.setStartTime(LocalTime.of(9, 0));
+        evt.setEndTime(LocalTime.of(10, 0));
+
+        // Teacher CANNOT create event (restricted to Admin)
+        SecurityException exTeacherEvent = assertThrows(SecurityException.class, () -> announcementService.createPost(evt, UserRole.TEACHER));
+        assertTrue(exTeacherEvent.getMessage().contains("only Administrators can create events"));
+
+        // Student CANNOT create announcement or event
+        SecurityException exStudent = assertThrows(SecurityException.class, () -> announcementService.createPost(ann, UserRole.STUDENT));
+        assertTrue(exStudent.getMessage().contains("Students have read-only access"));
     }
 
     @Test

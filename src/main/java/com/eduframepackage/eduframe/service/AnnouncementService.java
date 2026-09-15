@@ -5,6 +5,7 @@ import com.eduframepackage.eduframe.dto.ConflictCheckDTO;
 import com.eduframepackage.eduframe.model.Announcement;
 import com.eduframepackage.eduframe.model.PostStatus;
 import com.eduframepackage.eduframe.model.PostType;
+import com.eduframepackage.eduframe.model.UserRole;
 import com.eduframepackage.eduframe.repository.AnnouncementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,8 @@ import java.util.stream.Collectors;
 
 /**
  * Service managing core business logic for Announcements and Events.
- * Handles validation, schedule conflict checking, auto-expiry lifecycle, and notifications.
+ * Handles validation, role-based authorization, schedule conflict checking,
+ * auto-expiry lifecycle, and notifications.
  */
 @Service
 @Transactional
@@ -35,6 +37,12 @@ public class AnnouncementService {
     }
 
     public AnnouncementDTO createPost(AnnouncementDTO dto) {
+        return createPost(dto, UserRole.ADMIN);
+    }
+
+    public AnnouncementDTO createPost(AnnouncementDTO dto, UserRole role) {
+        if (role == null) role = UserRole.ADMIN;
+        validateRolePermissions(role, dto.getType(), "CREATE");
         validateBasicFields(dto);
 
         if (dto.getType() == PostType.EVENT) {
@@ -134,9 +142,16 @@ public class AnnouncementService {
     }
 
     public AnnouncementDTO updatePost(Long id, AnnouncementDTO dto) {
+        return updatePost(id, dto, UserRole.ADMIN);
+    }
+
+    public AnnouncementDTO updatePost(Long id, AnnouncementDTO dto, UserRole role) {
+        if (role == null) role = UserRole.ADMIN;
         Announcement existing = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with ID: " + id));
 
+        PostType targetType = dto.getType() != null ? dto.getType() : existing.getType();
+        validateRolePermissions(role, targetType, "EDIT");
         validateBasicFields(dto);
 
         if (existing.getType() == PostType.EVENT || dto.getType() == PostType.EVENT) {
@@ -177,12 +192,34 @@ public class AnnouncementService {
     }
 
     public AnnouncementDTO cancelOrDeletePost(Long id) {
+        return cancelOrDeletePost(id, UserRole.ADMIN);
+    }
+
+    public AnnouncementDTO cancelOrDeletePost(Long id, UserRole role) {
+        if (role == null) role = UserRole.ADMIN;
         Announcement existing = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with ID: " + id));
+
+        validateRolePermissions(role, existing.getType(), "DELETE");
 
         existing.setStatus(PostStatus.CANCELLED);
         Announcement saved = repository.save(existing);
         return convertToDTO(saved);
+    }
+
+    /**
+     * Enforces Role-Based Access Control Rules:
+     * - ADMIN: Full access (create, edit, read, delete announcements & events)
+     * - TEACHER: Full access to announcements (create, edit, read, delete). Read ONLY for events.
+     * - STUDENT: Read ONLY for both announcements and events.
+     */
+    private void validateRolePermissions(UserRole role, PostType postType, String action) {
+        if (role == UserRole.STUDENT) {
+            throw new SecurityException("Access Denied: Students have read-only access and cannot " + action.toLowerCase() + " posts.");
+        }
+        if ((role == UserRole.TEACHER || role == UserRole.LECTURER) && postType == PostType.EVENT) {
+            throw new SecurityException("Access Denied: Lecturers/Teachers can manage announcements, but only Administrators can " + action.toLowerCase() + " events.");
+        }
     }
 
     private void validateBasicFields(AnnouncementDTO dto) {

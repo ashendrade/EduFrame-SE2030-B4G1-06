@@ -35,7 +35,7 @@ class AnnouncementControllerTest {
         dto.setCourseId("SE2030");
         dto.setAuthorId("Prof. Kanishka");
 
-        ResponseEntity<?> response = announcementController.createAnnouncement(dto);
+        ResponseEntity<?> response = announcementController.createAnnouncement(dto, null, null);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertTrue(response.getBody() instanceof AnnouncementDTO);
@@ -76,10 +76,10 @@ class AnnouncementControllerTest {
         dto.setContent("Will be cancelled.");
         dto.setCourseId("SE2030");
 
-        ResponseEntity<?> createRes = announcementController.createAnnouncement(dto);
+        ResponseEntity<?> createRes = announcementController.createAnnouncement(dto, null, null);
         AnnouncementDTO created = (AnnouncementDTO) createRes.getBody();
 
-        ResponseEntity<?> deleteRes = announcementController.deleteAnnouncement(created.getId());
+        ResponseEntity<?> deleteRes = announcementController.deleteAnnouncement(created.getId(), null, null);
         assertEquals(HttpStatus.OK, deleteRes.getStatusCode());
         AnnouncementDTO cancelled = (AnnouncementDTO) deleteRes.getBody();
         assertEquals(PostStatus.CANCELLED, cancelled.getStatus());

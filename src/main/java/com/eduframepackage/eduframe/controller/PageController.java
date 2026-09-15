@@ -166,8 +166,45 @@ public class PageController {
         return "support";
     }
 
-    @GetMapping("/announcements")
-    public String announcements() {
-        return "announcements";
+    @GetMapping("/events")
+    public String events() {
+        return "events";
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(org.springframework.security.core.Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            boolean isTeacher = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_TEACHER"));
+
+            if (isAdmin) {
+                return "redirect:/dashboard/admin";
+            } else if (isTeacher) {
+                return "redirect:/dashboard/teacher";
+            } else {
+                return "redirect:/dashboard/student";
+            }
+        }
+        return "dashboard";
+    }
+
+    @GetMapping("/dashboard/student")
+    public String studentDashboard(Model model) {
+        model.addAttribute("roleTitle", "STUDENT");
+        return "dashboard";
+    }
+
+    @GetMapping("/dashboard/teacher")
+    public String teacherDashboard(Model model) {
+        model.addAttribute("roleTitle", "TEACHER");
+        return "dashboard";
+    }
+
+    @GetMapping("/dashboard/admin")
+    public String adminDashboard(Model model) {
+        model.addAttribute("roleTitle", "ADMIN");
+        return "dashboard";
     }
 }
