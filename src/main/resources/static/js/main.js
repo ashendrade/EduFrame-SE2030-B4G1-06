@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMockUpload();
     initMockSearch();
     initSupportModal();
+    initAnnouncementModal();
 });
 
 /**
@@ -286,6 +287,59 @@ function initSupportModal() {
     });
 
     // Close on backdrop click
+    backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) {
+            closeModal();
+        }
+    });
+}
+
+/**
+ * 7. GLOBAL ANNOUNCEMENT POPUP MODAL CONTROLLER
+ * Mounts the AnnouncementSystemComponent inside a popup modal when "Announcements" button is clicked in header navbar.
+ */
+function initAnnouncementModal() {
+    const openBtn = document.getElementById('openAnnouncementModalBtn');
+    const backdrop = document.getElementById('announcementModalBackdrop');
+    const modalRoot = document.getElementById('announcement-popup-root');
+
+    if (!openBtn || !backdrop || !modalRoot) return;
+
+    let rootInstance = null;
+
+    const closeModal = () => {
+        backdrop.style.display = 'none';
+        document.body.style.overflow = '';
+    };
+
+    openBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        backdrop.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        if (window.ReactDOM && window.AnnouncementSystemComponent) {
+            if (!rootInstance) {
+                rootInstance = ReactDOM.createRoot(modalRoot);
+            }
+            rootInstance.render(
+                React.createElement('div', { style: { position: 'relative' } }, [
+                    React.createElement('div', {
+                        key: 'close-header',
+                        style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }
+                    }, [
+                        React.createElement('h2', { key: 'title', style: { margin: 0, fontSize: '1.4rem', color: 'var(--color-primary)' } }, '📢 Module Announcements & Notices'),
+                        React.createElement('button', {
+                            key: 'close-btn',
+                            onClick: closeModal,
+                            style: { background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: 'var(--color-text-muted)' }
+                        }, '✕')
+                    ]),
+                    React.createElement(window.AnnouncementSystemComponent, { key: 'system' })
+                ])
+            );
+        }
+    });
+
     backdrop.addEventListener('click', (e) => {
         if (e.target === backdrop) {
             closeModal();
