@@ -4,6 +4,10 @@ import com.eduframepackage.eduframe.model.Ticket;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -47,4 +51,58 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
      * @return an {@link Optional} containing the latest Ticket entry
      */
     Optional<Ticket> findTopByOrderByIdDesc();
+
+    /**
+     * Returns all tickets ordered by creation timestamp descending (newest first).
+     * 
+     * @return list of tickets
+     */
+    List<Ticket> findAllByOrderByCreatedAtDesc();
+
+    /**
+     * Returns tickets matching a specific status ordered by creation timestamp descending.
+     * 
+     * @param status ticket status (e.g., "Open", "In Progress", "Resolved", "Closed")
+     * @return list of matching tickets
+     */
+    List<Ticket> findByStatusOrderByCreatedAtDesc(String status);
+
+    /**
+     * Returns tickets by category ordered by creation timestamp descending.
+     * 
+     * @param category the ticket category
+     * @return list of matching tickets
+     */
+    List<Ticket> findByCategoryOrderByCreatedAtDesc(String category);
+
+    /**
+     * Returns tickets submitted by a specific student ID ordered by creation timestamp descending.
+     * 
+     * @param studentId the student identifier
+     * @return list of student's tickets
+     */
+    List<Ticket> findByStudentIdOrderByCreatedAtDesc(String studentId);
+
+    /**
+     * Counts the number of tickets with a specific status.
+     * 
+     * @param status the ticket status
+     * @return count of matching tickets
+     */
+    long countByStatus(String status);
+
+    /**
+     * Searches tickets across Ticket ID, Subject, Description, Student ID, or Student Email.
+     * 
+     * @param query the search keyword
+     * @return list of matching tickets
+     */
+    @Query("SELECT t FROM Ticket t WHERE " +
+           "LOWER(t.ticketId) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(t.subject) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(t.description) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "(t.studentId IS NOT NULL AND LOWER(t.studentId) LIKE LOWER(CONCAT('%', :query, '%'))) OR " +
+           "(t.studentEmail IS NOT NULL AND LOWER(t.studentEmail) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "ORDER BY t.createdAt DESC")
+    List<Ticket> searchTickets(@Param("query") String query);
 }
