@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: html-head('Role Dashboard')}"></head>
+<body>
+
+    <!-- 1. SLIIT Styled Nav Header -->
+    <div th:replace="~{layout/base :: header('dashboard')}"></div>
+
+    <!-- 2. Hero Presentation Section -->
+    <section class="hero" style="padding: 40px 0; background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);">
+        <div class="container hero-content" style="text-align: center;">
+            <h1 class="animate-fade">EduFrame <span>Role Dashboard</span></h1>
+            <p class="animate-fade" style="animation-delay: 0.1s; max-width: 700px; margin: 0 auto;">
+                Tailored portal environment for Students, Teachers, and System Administrators.
+            </p>
+        </div>
+    </section>
+
+    <!-- 3. Main Component Mount Target -->
+    <main class="container" style="margin-top: 40px; margin-bottom: 60px;">
+        <div id="dashboard-root"></div>
+    </main>
+
+    <!-- 4. Footer -->
+    <div th:replace="~{layout/base :: footer}"></div>
+    
+    <!-- 5. Scripts -->
+    <div th:replace="~{layout/base :: scripts}"></div>
+
+    <!-- Load Announcement System & Dashboard View React Components via Babel -->
+    <script type="text/babel" th:src="@{/js/components/announcement-system.js}"></script>
+    <script type="text/babel" th:src="@{/js/components/dashboard-view.js}"></script>
+
+</body>
+</html>
