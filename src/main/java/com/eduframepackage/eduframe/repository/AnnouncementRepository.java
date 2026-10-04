@@ -21,7 +21,7 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
 
     List<Announcement> findByStatusOrderByCreatedAtDesc(PostStatus status);
 
-    @Query("SELECT a FROM Announcement a WHERE a.courseId = :courseId AND a.type = com.eduframepackage.eduframe.model.PostType.EVENT AND a.status != com.eduframepackage.eduframe.model.PostStatus.CANCELLED AND a.eventDate = :eventDate AND (a.startTime < :endTime AND a.endTime > :startTime)")
+    @Query("SELECT a FROM Announcement a WHERE a.courseId = :courseId AND a.type = com.eduframepackage.eduframe.model.PostType.EVENT AND a.status != com.eduframepackage.eduframe.model.PostStatus.CANCELLED AND a.eventDate = :eventDate AND (a.startTime < CAST(:endTime AS java.time.LocalTime) AND a.endTime > CAST(:startTime AS java.time.LocalTime))")
     List<Announcement> findConflictingEvents(
             @Param("courseId") String courseId,
             @Param("eventDate") LocalDate eventDate,
@@ -29,7 +29,7 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
             @Param("endTime") LocalTime endTime
     );
 
-    @Query("SELECT a FROM Announcement a WHERE a.courseId = :courseId AND a.type = com.eduframepackage.eduframe.model.PostType.EVENT AND a.status != com.eduframepackage.eduframe.model.PostStatus.CANCELLED AND a.eventDate = :eventDate AND (a.startTime < :endTime AND a.endTime > :startTime) AND a.id != :excludeId")
+    @Query("SELECT a FROM Announcement a WHERE a.courseId = :courseId AND a.type = com.eduframepackage.eduframe.model.PostType.EVENT AND a.status != com.eduframepackage.eduframe.model.PostStatus.CANCELLED AND a.eventDate = :eventDate AND (a.startTime < CAST(:endTime AS java.time.LocalTime) AND a.endTime > CAST(:startTime AS java.time.LocalTime)) AND a.id != :excludeId")
     List<Announcement> findConflictingEventsExcludingId(
             @Param("courseId") String courseId,
             @Param("eventDate") LocalDate eventDate,

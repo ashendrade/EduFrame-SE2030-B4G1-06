@@ -1,5 +1,7 @@
 package com.eduframepackage.eduframe.model;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,9 +43,11 @@ public class Announcement {
     private LocalDate eventDate;
 
     @Column(name = "start_time")
+    @JdbcTypeCode(SqlTypes.TIME)
     private LocalTime startTime;
 
     @Column(name = "end_time")
+    @JdbcTypeCode(SqlTypes.TIME)
     private LocalTime endTime;
 
     @Column(name = "location_url", length = 500)

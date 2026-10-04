@@ -16,24 +16,15 @@
             <h2>SLIIT Educational Portal</h2>
         </div>
         
-        <!-- Toggle Tabs -->
-        <div class="login-tabs">
-            <button type="button" class="login-tab active" data-role="student">Student Portal</button>
-            <button type="button" class="login-tab" data-role="staff">Staff/Lecturer</button>
-        </div>
-        
         <!-- Login Form -->
         <div class="login-form-body">
             <!-- Normal Spring Security Form login mapping -->
             <form th:action="@{/login}" method="post">
                 
-                <!-- Hidden role field to send to backend -->
-                <input type="hidden" id="loginRole" name="role" value="student">
-                
                 <div class="form-group">
-                    <label for="username">Registration ID / Email</label>
+                    <label for="username">Email / Registration ID</label>
                     <div style="position: relative;">
-                        <input type="text" id="username" name="username" class="form-control" placeholder="e.g. IT23004562 or email@sliit.lk" style="padding-left: 45px;" required autofocus>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="e.g. admin@eduframe.lk or student1@eduframe.lk" style="padding-left: 45px;" required autofocus>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </div>
                 </div>
@@ -50,73 +41,24 @@
                     </div>
                 </div>
                 
-                <!-- Spring security error handling UI placeholder -->
+                <!-- Spring security error handling UI -->
                 <div th:if="${param.error}" style="background-color: rgba(239, 68, 68, 0.1); border: 1px solid var(--color-danger); color: var(--color-danger); padding: 12px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 20px; font-weight: 500;">
-                    Invalid registration credentials. Please try again.
+                    Invalid email or password. Please try again.
                 </div>
                 
                 <div th:if="${param.logout}" style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid var(--color-success); color: var(--color-success); padding: 12px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 20px; font-weight: 500;">
                     You have successfully signed out of the portal.
                 </div>
 
-                <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width: 100%; padding: 12px; margin-bottom: 20px; font-size: 15px; font-weight: 700;">Sign In as Student</button>
-                
-                <!-- Quick Demo Login Helpers -->
-                <div style="background-color: var(--color-bg); border: 1px dashed var(--color-border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px;">
-                    <div style="font-size: 12px; font-weight: 700; color: var(--color-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                        Quick Demo Credentials (Click to auto-fill):
-                    </div>
-                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <button type="button" class="demo-fill-btn" onclick="fillCredentials('student', 'student123', 'student')" style="background: none; border: 1px solid var(--color-border); padding: 6px 10px; border-radius: var(--radius-sm); font-size: 12px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; color: var(--color-text);">
-                            <span><strong>Student:</strong> student / student123</span>
-                            <span style="color: var(--color-primary); font-weight: 600;">Student Portal &rarr;</span>
-                        </button>
-                        <button type="button" class="demo-fill-btn" onclick="fillCredentials('staff', 'staff123', 'staff')" style="background: none; border: 1px solid var(--color-secondary); padding: 6px 10px; border-radius: var(--radius-sm); font-size: 12px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; color: var(--color-text); background-color: rgba(242, 169, 0, 0.05);">
-                            <span><strong>Staff Officer:</strong> staff / staff123</span>
-                            <span style="color: var(--color-secondary); font-weight: 700;">Help Desk Console &rarr;</span>
-                        </button>
-                    </div>
-                </div>
+                <button type="submit" id="loginSubmitBtn" class="btn btn-primary" style="width: 100%; padding: 12px; margin-bottom: 20px; font-size: 15px; font-weight: 700;">Sign In</button>
 
-                <div style="text-align: center; font-size: 12px; color: var(--color-text-muted); border-top: 1px solid var(--color-border); padding-top: 16px;">
-                    Staff members can access the ticket console directly at <a th:href="@{/staff/helpdesk}" style="color: var(--color-secondary); font-weight: 600;">/staff/helpdesk</a>. <br>
-                    Need assistance? Contact <a href="mailto:support-media@sliit.lk" style="color: var(--color-primary); font-weight: 600;">support-media@sliit.lk</a>.
+                <div style="text-align: center; font-size: 13px; color: var(--color-text-muted); border-top: 1px solid var(--color-border); padding-top: 16px;">
+                    Don't have an account? <a th:href="@{/register}" style="color: var(--color-secondary); font-weight: 700;">Register Here</a>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Script to auto-fill credentials and handle tab switching -->
-    <script>
-        function fillCredentials(user, pass, role) {
-            document.getElementById('username').value = user;
-            document.getElementById('password').value = pass;
-            const roleInput = document.getElementById('loginRole');
-            if (roleInput) roleInput.value = role;
-
-            document.querySelectorAll('.login-tab').forEach(t => {
-                if (t.getAttribute('data-role') === role) {
-                    t.classList.add('active');
-                } else {
-                    t.classList.remove('active');
-                }
-            });
-
-            const btn = document.getElementById('loginSubmitBtn');
-            if (btn) {
-                btn.textContent = role === 'staff' ? 'Sign In to Staff Help Desk Console' : 'Sign In as Student';
-            }
-        }
-
-        // Auto select tab based on query param ?role=staff
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('role') === 'staff') {
-                fillCredentials('staff', 'staff123', 'staff');
-            }
-        });
-    </script>
     <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

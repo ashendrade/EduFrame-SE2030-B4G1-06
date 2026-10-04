@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
@@ -19,6 +20,9 @@ public class PageController {
 
     @Autowired
     private TicketService ticketService;
+
+    @Autowired
+    private com.eduframepackage.eduframe.quiz.service.UserService userService;
 
     private final List<Video> mockVideos = new ArrayList<>();
 
@@ -106,6 +110,9 @@ public class PageController {
         return "index";
     }
 
+    @Autowired
+    private com.eduframepackage.eduframe.service.CourseService courseService;
+
     @GetMapping("/browse")
     public String browse(@RequestParam(value = "search", required = false) String search,
                          @RequestParam(value = "category", required = false) String category,
@@ -127,7 +134,10 @@ public class PageController {
                 .collect(Collectors.toList());
         }
 
+        List<com.eduframepackage.eduframe.model.Course> catalogCourses = courseService.searchCourses(search, category);
+
         model.addAttribute("videos", filtered);
+        model.addAttribute("courses", catalogCourses);
         model.addAttribute("searchQuery", search);
         model.addAttribute("selectedCategory", category != null ? category : "All");
         return "browse";
@@ -158,13 +168,82 @@ public class PageController {
     }
 
     @GetMapping("/upload")
-    public String upload() {
+    public String upload(org.springframework.security.core.Authentication auth, Model model) {
+        String fullName = "T. D. Adikari";
+        String email = "teacher@eduframe.lk";
+        if (auth != null && auth.isAuthenticated()) {
+            email = auth.getName();
+            try {
+                com.eduframepackage.eduframe.quiz.entity.User user = userService.getByEmail(email);
+                if (user != null && user.getFullName() != null && !user.getFullName().trim().isEmpty()) {
+                    fullName = user.getFullName();
+                }
+            } catch (Exception e) {
+                fullName = email;
+            }
+        }
+
+        String initials = "TA";
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            String[] parts = fullName.trim().split("\\s+");
+            if (parts.length >= 2) {
+                initials = (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
+            } else {
+                initials = fullName.substring(0, Math.min(2, fullName.length())).toUpperCase();
+            }
+        }
+
+        model.addAttribute("lecturerName", fullName);
+        model.addAttribute("lecturerEmail", email);
+        model.addAttribute("lecturerInitials", initials);
         return "upload";
     }
 
     @GetMapping("/login")
     public String login() {
         return "login";
+    }
+
+    @GetMapping("/register")
+    public String register() {
+        return "register";
+    }
+
+    @PostMapping("/register")
+    public String handleRegistration(@RequestParam("fullName") String fullName,
+                                     @RequestParam("email") String email,
+                                     @RequestParam("password") String password,
+                                     Model model) {
+        try {
+            userService.register(fullName, email, password, com.eduframepackage.eduframe.quiz.entity.Role.STUDENT);
+            model.addAttribute("successMessage", "Registration successful! You can now log in with your credentials.");
+        } catch (Exception ex) {
+            model.addAttribute("errorMessage", ex.getMessage());
+            return "register";
+        }
+        return "register";
+    }
+
+    @GetMapping("/events")
+    public String events() {
+        return "events";
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(org.springframework.security.core.Authentication auth, Model model) {
+        String role = "STUDENT";
+        if (auth != null) {
+            boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            boolean isTeacher = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_TEACHER"));
+            if (isAdmin) {
+                role = "ADMIN";
+            } else if (isTeacher) {
+                role = "TEACHER";
+            }
+            model.addAttribute("username", auth.getName());
+        }
+        model.addAttribute("userRole", role);
+        return "dashboard";
     }
 
     @GetMapping("/support")
@@ -193,4 +272,47 @@ public class PageController {
     public String staffLogin() {
         return "redirect:/login?role=staff";
     }
+
+    @GetMapping("/profile")
+    public String userProfile(org.springframework.security.core.Authentication auth, Model model) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        String email = auth.getName();
+        try {
+            com.eduframepackage.eduframe.quiz.entity.User user = userService.getByEmail(email);
+            model.addAttribute("user", user);
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "User profile details could not be retrieved.");
+        }
+        return "profile";
+    }
+
+    @PostMapping("/profile")
+    public String updateProfile(@RequestParam("fullName") String fullName,
+                                @RequestParam("email") String newEmail,
+                                @RequestParam(value = "currentPassword", required = false) String currentPassword,
+                                @RequestParam(value = "newPassword", required = false) String newPassword,
+                                org.springframework.security.core.Authentication auth,
+                                Model model) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        String currentEmail = auth.getName();
+        try {
+            com.eduframepackage.eduframe.quiz.entity.User updatedUser = userService.updateProfile(
+                    currentEmail, fullName, newEmail, currentPassword, newPassword
+            );
+            model.addAttribute("user", updatedUser);
+            model.addAttribute("successMessage", "Profile details updated successfully!");
+        } catch (Exception ex) {
+            try {
+                com.eduframepackage.eduframe.quiz.entity.User user = userService.getByEmail(currentEmail);
+                model.addAttribute("user", user);
+            } catch (Exception ignored) {}
+            model.addAttribute("errorMessage", ex.getMessage());
+        }
+        return "profile";
+    }
 }
+

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${quiz.title} + ' - EduFrame'">Quiz - EduFrame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{layout/base :: header('teacher')}"></div>
+
+<div class="page">
+    <div class="page-header">
+        <div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+                <h1 style="margin:0;" th:text="${quiz.title}"></h1>
+                <span th:if="${quiz.status.name() == 'DRAFT'}" class="badge badge-draft" th:text="${quiz.status}"></span>
+                <span th:if="${quiz.status.name() == 'PUBLISHED'}" class="badge badge-published" th:text="${quiz.status}"></span>
+                <span th:if="${quiz.status.name() == 'CLOSED'}" class="badge badge-closed" th:text="${quiz.status}"></span>
+            </div>
+            <p class="mb-0" th:text="${quiz.description}"></p>
+            <p class="text-muted" style="margin-top:6px; font-size:13px;"
+               th:text="${#lists.size(questions)} + ' questions &middot; ' + ${quiz.totalMarks} + ' total marks &middot; ' + ${quiz.timerMinutes} + ' min timer &middot; pass mark ' + ${quiz.passMarkPercentage} + '%'"></p>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <a th:href="@{/teacher/quizzes/{id}/edit(id=${quiz.id})}" class="btn btn-secondary">Edit details</a>
+            <a th:href="@{/teacher/quizzes/{id}/results(id=${quiz.id})}" class="btn btn-secondary">View results</a>
+            <form th:if="${quiz.status.name() == 'DRAFT'}" th:action="@{/teacher/quizzes/{id}/publish(id=${quiz.id})}" method="post" style="margin:0;">
+                <button type="submit" class="btn btn-primary">Publish quiz</button>
+            </form>
+            <form th:if="${quiz.status.name() == 'PUBLISHED'}" th:action="@{/teacher/quizzes/{id}/close(id=${quiz.id})}" method="post" style="margin:0;">
+                <button type="submit" class="btn btn-secondary">Close quiz</button>
+            </form>
+            <form th:action="@{/teacher/quizzes/{id}/delete(id=${quiz.id})}" method="post" style="margin:0;"
+                  onsubmit="return confirm('Delete this entire quiz, including its question bank? This cannot be undone. (Quizzes with existing student attempts can\'t be deleted - close them instead.)');">
+                <button type="submit" class="btn btn-danger">Delete quiz</button>
+            </form>
+        </div>
+    </div>
+
+    <h2>Question bank</h2>
+    <div th:if="${#lists.isEmpty(questions)}" class="card empty-state" style="margin-bottom:20px;">
+        <p style="margin:0 auto;">No questions yet. Add your first question below.</p>
+    </div>
+
+    <div class="list-card mt-24" th:unless="${#lists.isEmpty(questions)}">
+        <div class="list-row" th:each="q, iter : ${questions}">
+            <div style="flex:1;">
+                <div class="list-row-title" th:text="(${iter.index} + 1) + '. ' + ${q.questionText}"></div>
+                <div class="list-row-meta">
+                    <span th:text="${q.questionType}"></span> &middot;
+                    <span th:text="${q.marks} + ' mark(s)'"></span> &middot;
+                    <span>Answer: <strong th:text="${q.correctAnswer}"></strong></span>
+                    <span th:if="${q.questionType.name() == 'MCQ'}">
+                        &middot; Options: <span th:each="o, oiter : ${q.options}" th:text="${o.optionText} + (${oiter.last} ? '' : ', ')"></span>
+                    </span>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <a th:href="@{/teacher/questions/{id}/edit(id=${q.id})}" class="btn btn-secondary btn-sm">Edit</a>
+                <form th:action="@{/teacher/questions/{id}/delete(id=${q.id})}" method="post" style="margin:0;"
+                      onsubmit="return confirm('Delete this question?');">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="mt-24" style="font-family: var(--font-heading); font-size: 22px; color: var(--color-primary); font-weight: 700; margin-top: 32px; margin-bottom: 16px;">Add a Question</h2>
+    <div class="quiz-card-form">
+        <form th:action="@{/teacher/quizzes/{id}/questions(id=${quiz.id})}" th:object="${questionForm}" method="post" id="addQuestionForm">
+
+            <div class="form-group">
+                <label for="questionText">Question Text</label>
+                <textarea id="questionText" class="form-control" rows="3" th:field="*{questionText}" placeholder="Type the question..." required></textarea>
+                <div class="field-error" th:if="${#fields.hasErrors('questionText')}" th:errors="*{questionText}"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="questionType">Question Type</label>
+                    <select id="questionType" class="form-control" th:field="*{questionType}" onchange="toggleQuestionFields()">
+                        <option value="MCQ">Multiple Choice</option>
+                        <option value="TRUE_FALSE">True / False</option>
+                        <option value="SHORT_ANSWER">Short Answer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="marks">Marks</label>
+                    <input type="number" id="marks" class="form-control" th:field="*{marks}" min="1" required>
+                </div>
+            </div>
+
+            <div id="mcqOptions" class="form-group">
+                <label>Options <span style="font-weight:400; color: var(--color-text-muted);">(fill in at least 2)</span></label>
+                <input type="text" class="form-control" name="options" placeholder="Option 1" style="margin-bottom:8px;">
+                <input type="text" class="form-control" name="options" placeholder="Option 2" style="margin-bottom:8px;">
+                <input type="text" class="form-control" name="options" placeholder="Option 3 (optional)" style="margin-bottom:8px;">
+                <input type="text" class="form-control" name="options" placeholder="Option 4 (optional)">
+                <div class="field-help">The correct answer text below must exactly match one option.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="correctAnswer" id="correctAnswerLabel">Correct Answer</label>
+                <input type="text" id="correctAnswer" class="form-control" th:field="*{correctAnswer}" placeholder="e.g. Option 2, TRUE, or the reference answer" required>
+                <div class="field-error" th:if="${#fields.hasErrors('correctAnswer')}" th:errors="*{correctAnswer}"></div>
+                <div class="field-help" id="trueFalseHelp" style="display:none;">Enter TRUE or FALSE.</div>
+                <div class="field-help" id="shortAnswerHelp" style="display:none;">Students are auto-graded on a close text match to this reference answer.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 16px;">Add Question</button>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/quiz-teacher.js}"></script>
+</body>
+</html>

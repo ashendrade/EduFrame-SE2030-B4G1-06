@@ -98,32 +98,27 @@
                     </select>
                 </div>
 
-                <!-- Catalog Grid -->
+                <!-- Catalog Grid for Academic Courses -->
                 <div class="video-grid" id="catalogGrid">
-                    <!-- Iterating over matching videos -->
-                    <div class="video-card animate-fade" th:each="video : ${videos}">
-                        <div class="card-thumbnail">
-                            <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background-color:var(--color-primary); color:white; font-weight:700; font-size:16px;">
-                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.8;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <div class="video-card animate-fade" th:each="course : ${courses}">
+                        <div class="card-thumbnail" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)); height: 160px; display: flex; flex-direction: column; justify-content: space-between; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <span style="background-color: var(--color-secondary); color: var(--color-primary-dark); padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 12px;" th:text="${course.code}">SE2030</span>
+                                <span style="background-color: rgba(255,255,255,0.2); color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;" th:text="${course.category}">Computing</span>
                             </div>
-                            <span class="video-duration" th:text="${video.duration}">Duration</span>
-                            <span class="video-category" th:text="${video.category}">Category</span>
+                            <div style="color: white; font-family: var(--font-heading); font-size: 20px; font-weight: 800;" th:text="${course.code}"></div>
+                            <span class="video-duration" th:text="${course.duration}">12 Weeks</span>
                         </div>
                         <div class="card-body">
                             <h3 class="video-title">
-                                <a th:href="@{'/play/' + ${video.id}}" th:text="${video.title}">Title</a>
+                                <a th:href="@{'/courses/' + ${course.id}}" th:text="${course.title}">Title</a>
                             </h3>
-                            <p class="video-desc" th:text="${video.description}">Description</p>
-                            <div class="card-meta">
+                            <p class="video-desc" th:text="${course.description}" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;"></p>
+                            <div class="card-meta" style="margin-top: 14px;">
                                 <div>
-                                    By <span class="lecturer-name" th:text="${video.lecturer}">Lecturer</span>
+                                    By <span class="lecturer-name" th:text="${course.instructor}">Lecturer</span>
                                 </div>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="display: flex; align-items: center; gap: 4px;">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                        <span th:text="${video.views}">120</span>
-                                    </div>
-                                </div>
+                                <a th:href="@{'/courses/' + ${course.id}}" class="btn btn-primary btn-sm" style="font-size: 12px; padding: 6px 12px;">View &amp; Enroll &rarr;</a>
                             </div>
                         </div>
                     </div>

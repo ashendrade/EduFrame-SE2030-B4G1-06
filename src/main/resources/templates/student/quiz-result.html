@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Result - ' + ${quiz.title}">Result - EduFrame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{layout/base :: header('student')}"></div>
+
+<div class="page-narrow">
+    <div class="card score-hero">
+        <p class="text-muted" style="margin:0 0 6px;" th:text="${quiz.title}"></p>
+        <div class="score-ring" th:classappend="${attempt.passed} ? 'pass' : 'fail'"
+             th:text="(${attempt.scorePercentage} ?: 0) + '%'"></div>
+        <p style="margin:10px auto 0;">
+            <span th:text="${attempt.scoreObtained} + ' out of ' + ${quiz.totalMarks} + ' marks'"></span>
+        </p>
+        <div class="mt-24">
+            <span class="badge" style="font-size:14px; padding:6px 16px;"
+                  th:classappend="${attempt.passed} ? 'badge-pass' : 'badge-fail'"
+                  th:text="${attempt.passed} ? 'You passed!' : 'Not passed this time'"></span>
+        </div>
+        <p class="text-muted mt-24" th:if="${attempt.passed}">
+            Your certificate has been generated automatically &mdash; find it under
+            <a th:href="@{/student/certificates}">My Certificates</a>.
+        </p>
+        <p class="text-muted mt-24" th:unless="${attempt.passed}">
+            You needed <span th:text="${quiz.passMarkPercentage}"></span>% to pass. You're welcome to review the
+            material and look out for another attempt if your instructor reopens this quiz.
+        </p>
+    </div>
+
+    <div style="text-align:center; margin-top:20px;">
+        <a th:href="@{/student/dashboard}" class="btn btn-secondary">Back to dashboard</a>
+    </div>
+</div>
+</body>
+</html>

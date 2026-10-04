@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>My Certificates - EduFrame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{layout/base :: header('certificates')}"></div>
+
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h1>My Certificates</h1>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(certificates)}" class="card empty-state">
+        <p style="margin:0 auto;">No certificates yet &mdash; pass a quiz to earn your first one.</p>
+    </div>
+
+    <div class="list-card" th:unless="${#lists.isEmpty(certificates)}">
+        <div class="cert-row" th:each="c : ${certificates}">
+            <div class="cert-icon">PDF</div>
+            <div style="flex:1;">
+                <div class="list-row-title" th:text="${c.quiz.title}"></div>
+                <div class="list-row-meta" th:text="'Certificate ID: ' + ${c.certificateCode}"></div>
+            </div>
+            <a th:href="@{/certificates/{id}/download(id=${c.id})}" target="_blank" class="btn btn-primary btn-sm">Download PDF</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

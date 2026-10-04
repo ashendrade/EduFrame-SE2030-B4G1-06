@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Results - ' + ${quiz.title}">Results - EduFrame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{layout/base :: header('teacher')}"></div>
+
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h1 th:text="${quiz.title}"></h1>
+        </div>
+        <a th:href="@{/teacher/quizzes/{id}(id=${quiz.id})}" class="btn btn-secondary">Back to quiz</a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(attempts)}" class="card empty-state">
+        <p style="margin:0 auto;">No attempts submitted yet.</p>
+    </div>
+
+    <div class="card" th:unless="${#lists.isEmpty(attempts)}" style="padding:0; overflow-x:auto;">
+        <table>
+            <thead>
+            <tr>
+                <th>Student</th>
+                <th>Score</th>
+                <th>Percentage</th>
+                <th>Result</th>
+                <th>Status</th>
+                <th>Submitted</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="a : ${attempts}">
+                <td>
+                    <div th:text="${a.studentName}" style="font-weight:600; color:var(--ink-navy);"></div>
+                    <div class="text-muted" style="font-size:12.5px;" th:text="${a.studentEmail}"></div>
+                </td>
+                <td th:text="${a.scoreObtained} + ' / ' + ${a.totalMarks}"></td>
+                <td th:text="${a.scorePercentage} + '%'"></td>
+                <td>
+                    <span th:if="${a.passed} != null" class="badge" th:classappend="${a.passed} ? 'badge-pass' : 'badge-fail'"
+                          th:text="${a.passed} ? 'Passed' : 'Failed'"></span>
+                    <span th:if="${a.passed} == null" class="text-muted">-</span>
+                </td>
+                <td th:text="${a.status}"></td>
+                <td th:text="${a.submittedAt}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Question - EduFrame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{layout/base :: header('teacher')}"></div>
+
+<div class="page-narrow">
+    <div style="margin-bottom: 24px;">
+        <h1 style="font-family: var(--font-heading); font-size: 28px; color: var(--color-primary); font-weight: 800;">Edit Question</h1>
+        <p style="color: var(--color-text-muted); font-size: 15px; margin-top: 4px;">Part of quiz: <strong th:text="${quiz.title}" style="color: var(--color-primary);"></strong></p>
+    </div>
+
+    <div class="quiz-card-form">
+        <form th:action="@{/teacher/questions/{id}(id=${questionForm.id})}" th:object="${questionForm}" method="post">
+
+            <div class="form-group">
+                <label for="questionText">Question Text</label>
+                <textarea id="questionText" class="form-control" rows="3" th:field="*{questionText}" required></textarea>
+                <div class="field-error" th:if="${#fields.hasErrors('questionText')}" th:errors="*{questionText}"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="questionType">Question Type</label>
+                    <select id="questionType" class="form-control" th:field="*{questionType}" onchange="toggleQuestionFields()">
+                        <option value="MCQ">Multiple Choice</option>
+                        <option value="TRUE_FALSE">True / False</option>
+                        <option value="SHORT_ANSWER">Short Answer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="marks">Marks</label>
+                    <input type="number" id="marks" class="form-control" th:field="*{marks}" min="1" required>
+                </div>
+            </div>
+
+            <div id="mcqOptions" class="form-group">
+                <label>Options</label>
+                <input type="text" class="form-control" name="options" th:value="${questionForm.options.size() > 0} ? ${questionForm.options[0]} : ''" placeholder="Option 1" style="margin-bottom:8px;">
+                <input type="text" class="form-control" name="options" th:value="${questionForm.options.size() > 1} ? ${questionForm.options[1]} : ''" placeholder="Option 2" style="margin-bottom:8px;">
+                <input type="text" class="form-control" name="options" th:value="${questionForm.options.size() > 2} ? ${questionForm.options[2]} : ''" placeholder="Option 3 (optional)" style="margin-bottom:8px;">
+                <input type="text" class="form-control" name="options" th:value="${questionForm.options.size() > 3} ? ${questionForm.options[3]} : ''" placeholder="Option 4 (optional)">
+            </div>
+
+            <div class="form-group">
+                <label for="correctAnswer">Correct Answer</label>
+                <input type="text" id="correctAnswer" class="form-control" th:field="*{correctAnswer}" required>
+                <div class="field-error" th:if="${#fields.hasErrors('correctAnswer')}" th:errors="*{correctAnswer}"></div>
+            </div>
+
+            <div style="display:flex; gap:14px; margin-top:32px; align-items: center;">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a th:href="@{/teacher/quizzes/{id}(id=${quiz.id})}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script th:src="@{/js/quiz-teacher.js}"></script>
+</body>
+</html>
+

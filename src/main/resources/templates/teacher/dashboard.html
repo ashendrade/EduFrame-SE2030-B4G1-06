@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Instructor Dashboard - EduFrame SLIIT</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{layout/base :: header('teacher')}"></div>
+
+<div class="page container" style="margin-top: 20px;">
+
+    <!-- Dashboard Welcome Header -->
+    <div class="page-header" style="margin-bottom: 25px; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 20px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <span class="badge" style="background-color: var(--color-secondary); color: var(--color-primary); font-weight: 800; font-size: 11px;">LECTURER WORKSPACE</span>
+                <span style="font-size: 13px; color: var(--color-text-muted); font-weight: 600;">Welcome back, Instructor</span>
+            </div>
+            <h1 style="font-size: 30px; color: var(--color-primary); margin: 0;">Instructor Dashboard</h1>
+            <p style="color: var(--color-text-muted); font-size: 14.5px; margin-top: 4px;">Unified control center to manage your courses, course contents, and student quizzes.</p>
+        </div>
+        
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <a th:href="@{/upload}" class="btn btn-secondary" style="border-color: var(--color-primary); color: var(--color-primary); display: inline-flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Create New Course
+            </a>
+            <a th:href="@{/teacher/quizzes/new}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Create New Quiz
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert / Success Messages -->
+    <div th:if="${successMessage}" class="badge-published" style="padding: 12px 20px; font-size: 14px; margin-bottom: 24px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 8px;">
+        <span>✅</span>
+        <span th:text="${successMessage}"></span>
+    </div>
+
+    <!-- Dashboard Key Metrics Grid -->
+    <div class="teacher-stats-grid">
+        <div class="teacher-stat-card">
+            <div class="teacher-stat-icon">📘</div>
+            <div>
+                <div class="teacher-stat-val" th:text="${totalCourses != null ? totalCourses : 0}">0</div>
+                <div class="teacher-stat-label">Active Courses</div>
+            </div>
+        </div>
+
+        <div class="teacher-stat-card">
+            <div class="teacher-stat-icon">📝</div>
+            <div>
+                <div class="teacher-stat-val" th:text="${totalQuizzes != null ? totalQuizzes : 0}">0</div>
+                <div class="teacher-stat-label">Quizzes &amp; Tests</div>
+            </div>
+        </div>
+
+        <div class="teacher-stat-card">
+            <div class="teacher-stat-icon">🎓</div>
+            <div>
+                <div class="teacher-stat-val" th:text="${totalEnrolled != null ? totalEnrolled : 0}">0</div>
+                <div class="teacher-stat-label">Total Enrolled Students</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dual Tab Navigation: Courses vs Quizzes -->
+    <div class="dash-tabs-container">
+        <div class="dash-tabs-nav">
+            <button id="courses-tab-btn" class="dash-tab-btn active" onclick="switchDashTab('courses')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                Course Management (<span th:text="${totalCourses}">0</span>)
+            </button>
+            <button id="quizzes-tab-btn" class="dash-tab-btn" onclick="switchDashTab('quizzes')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Quiz &amp; Assessments (<span th:text="${totalQuizzes}">0</span>)
+            </button>
+        </div>
+    </div>
+
+    <!-- TAB 1: COURSE MANAGEMENT -->
+    <div id="courses-tab-content" class="dash-tab-content active">
+        <div th:if="${#lists.isEmpty(courses)}" class="empty-state">
+            <div style="font-size: 36px; margin-bottom: 8px;">📚</div>
+            <h3>No Courses Found</h3>
+            <p>You haven't created any courses yet. Click "+ Create New Course" above to publish your first course.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(courses)}">
+            <div th:each="course : ${courses}" class="teacher-course-card">
+                <div class="teacher-course-info">
+                    <div class="teacher-course-badge" th:text="${course.code}">CODE</div>
+                    <div>
+                        <div class="teacher-course-title">
+                            <a th:href="@{/courses/{id}(id=${course.id})}" th:text="${course.title}" style="color: var(--color-primary); text-decoration: none;">Course Title</a>
+                        </div>
+                        <div class="teacher-course-meta">
+                            <span th:text="${course.category}">Category</span>
+                            &middot;
+                            <span th:text="${course.duration != null ? course.duration : '10 Weeks'}">10 Weeks</span>
+                            &middot;
+                            <span th:text="${course.enrolledCount} + ' Enrolled Students'">0 Enrolled</span>
+                            &middot;
+                            <span style="color: var(--color-secondary); font-weight: 600;" th:text="${course.instructor}">Instructor</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <a th:href="@{/courses/{id}(id=${course.id})}" class="btn btn-secondary btn-sm">
+                        👁️ View Content
+                    </a>
+                    <a th:href="@{/teacher/courses/{id}/edit(id=${course.id})}" class="btn btn-primary btn-sm">
+                        ✏️ Edit Course &amp; Modules
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: QUIZ & ASSESSMENT MANAGEMENT -->
+    <div id="quizzes-tab-content" class="dash-tab-content">
+        <div th:if="${#lists.isEmpty(quizzes)}" class="empty-state">
+            <div style="font-size: 36px; margin-bottom: 8px;">📝</div>
+            <h3>No Quizzes Created Yet</h3>
+            <p>Create your first assessment to start evaluating student progress.</p>
+        </div>
+
+        <div th:unless="${#lists.isEmpty(quizzes)}" class="list-card">
+            <div class="list-row" th:each="quiz : ${quizzes}">
+                <div>
+                    <div class="list-row-title">
+                        <a th:href="@{/teacher/quizzes/{id}(id=${quiz.id})}" th:text="${quiz.title}">Quiz Title</a>
+                    </div>
+                    <div class="list-row-meta">
+                        <span th:text="${#lists.size(quiz.questions)} + ' Questions'"></span>
+                        &middot;
+                        <span th:text="${quiz.timerMinutes} + ' min timer'"></span>
+                        &middot;
+                        <span th:text="'Pass Mark: ' + ${quiz.passMarkPercentage} + '%'"></span>
+                    </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span th:if="${quiz.status.name() == 'DRAFT'}" class="badge badge-draft" th:text="${quiz.status}">DRAFT</span>
+                    <span th:if="${quiz.status.name() == 'PUBLISHED'}" class="badge badge-published" th:text="${quiz.status}">PUBLISHED</span>
+                    <span th:if="${quiz.status.name() == 'CLOSED'}" class="badge badge-closed" th:text="${quiz.status}">CLOSED</span>
+                    <a th:href="@{/teacher/quizzes/{id}/results(id=${quiz.id})}" class="btn btn-secondary btn-sm">📊 Results</a>
+                    <a th:href="@{/teacher/quizzes/{id}(id=${quiz.id})}" class="btn btn-secondary btn-sm">⚙️ Manage</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function switchDashTab(tabName) {
+        document.querySelectorAll('.dash-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.dash-tab-content').forEach(content => content.classList.remove('active'));
+        
+        const selectedBtn = document.getElementById(tabName + '-tab-btn');
+        const selectedContent = document.getElementById(tabName + '-tab-content');
+        if (selectedBtn) selectedBtn.classList.add('active');
+        if (selectedContent) selectedContent.classList.add('active');
+    }
+</script>
+</body>
+</html>

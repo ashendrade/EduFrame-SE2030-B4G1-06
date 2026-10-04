@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${quizForm.id == null} ? 'New Quiz - EduFrame' : 'Edit Quiz - EduFrame'">Quiz - EduFrame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{layout/base :: header('teacher')}"></div>
+
+<div class="page-narrow">
+    <div style="margin-bottom: 24px;">
+        <h1 th:text="${quizForm.id == null} ? 'Create a new quiz' : 'Edit quiz'" style="font-family: var(--font-heading); font-size: 28px; color: var(--color-primary); font-weight: 800;"></h1>
+        <p style="color: var(--color-text-muted); font-size: 15px; margin-top: 4px;">Set up quiz details, timing limits, pass mark, and course module link.</p>
+    </div>
+
+    <div class="quiz-card-form">
+        <form th:action="${quizForm.id == null} ? @{/teacher/quizzes} : @{/teacher/quizzes/{id}(id=${quizForm.id})}"
+              th:object="${quizForm}" method="post">
+
+            <div class="form-group">
+                <label for="title">Quiz Title</label>
+                <input type="text" id="title" class="form-control" th:field="*{title}" placeholder="e.g. Software Engineering Fundamentals - Quiz 1" required>
+                <div class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" class="form-control" rows="4" th:field="*{description}" placeholder="What does this quiz cover?"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="timerMinutes">Timer (minutes)</label>
+                    <input type="number" id="timerMinutes" class="form-control" th:field="*{timerMinutes}" min="1" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('timerMinutes')}" th:errors="*{timerMinutes}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="passMarkPercentage">Pass Mark (%)</label>
+                    <input type="number" id="passMarkPercentage" class="form-control" th:field="*{passMarkPercentage}" min="0" max="100" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('passMarkPercentage')}" th:errors="*{passMarkPercentage}"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="courseId">Course ID <span style="font-weight: normal; color: var(--color-text-muted); font-size: 13px;">(optional - links to Course module)</span></label>
+                <input type="number" id="courseId" class="form-control" th:field="*{courseId}" placeholder="e.g. 1">
+            </div>
+
+            <div style="display: flex; gap: 14px; margin-top: 32px; align-items: center;">
+                <button type="submit" class="btn btn-primary">
+                    <span th:text="${quizForm.id == null} ? 'Create Quiz' : 'Save Changes'"></span>
+                </button>
+                <a th:href="@{/dashboard}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+

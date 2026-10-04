@@ -19,7 +19,7 @@ function EventsCalendar() {
     const fetchEvents = async () => {
         setLoading(true);
         try {
-            let url = '/api/announcements?type=LIVE_EVENT';
+            let url = '/api/announcements?type=EVENT';
             if (filterCourse !== 'All') {
                 url += `&courseId=${encodeURIComponent(filterCourse)}`;
             }
@@ -63,7 +63,7 @@ function EventsCalendar() {
     });
 
     return (
-        <div class="events-calendar-wrapper">
+        <div className="events-calendar-wrapper">
             {/* Filter & Month Navigation Header */}
             <div style={{
                 display: 'flex',
@@ -105,7 +105,7 @@ function EventsCalendar() {
                     </select>
 
                     {currentRole === 'ADMIN' && (
-                        <a href="/dashboard/admin" class="btn btn-primary" style={{ padding: '8px 14px', fontSize: '0.85rem', background: '#ef4444', borderColor: '#dc2626' }}>
+                        <a href="/dashboard/admin" className="btn btn-primary" style={{ padding: '8px 14px', fontSize: '0.85rem', background: '#ef4444', borderColor: '#dc2626' }}>
                             + Schedule Event
                         </a>
                     )}

@@ -14,8 +14,20 @@
     const { useState, useEffect } = React;
 
     function AnnouncementSystem({ initialCourseId = 'All' }) {
-        // Active Role State: ADMIN, TEACHER, STUDENT
-        const [currentRole, setCurrentRole] = useState(localStorage.getItem('eduframe_role') || 'ADMIN');
+        // Automatically determine role based on page attributes / subpath
+        const rootEl = document.getElementById('announcements-root') || document.getElementById('dashboard-root');
+        const serverRole = rootEl ? rootEl.getAttribute('data-user-role') : null;
+        const currentPath = window.location.pathname;
+        let authenticatedRole = serverRole || localStorage.getItem('eduframe_role') || 'STUDENT';
+        if (currentPath.includes('/admin') || currentPath.includes('/dashboard/admin')) {
+            authenticatedRole = 'ADMIN';
+        } else if (currentPath.includes('/teacher') || currentPath.includes('/dashboard/teacher')) {
+            authenticatedRole = 'TEACHER';
+        } else if (currentPath.includes('/student') || currentPath.includes('/dashboard/student')) {
+            authenticatedRole = 'STUDENT';
+        }
+
+        const [currentRole] = useState(authenticatedRole);
 
         // Feed & Listing State
         const [posts, setPosts] = useState([]);
@@ -32,7 +44,8 @@
         const [title, setTitle] = useState('');
         const [content, setContent] = useState('');
         const [courseId, setCourseId] = useState('SE2030');
-        const [authorId, setAuthorId] = useState('Prof. Kanishka');
+        const activeUserName = window.SPRING_USER_NAME || localStorage.getItem('eduframe_user_name') || 'System Admin';
+        const [authorId, setAuthorId] = useState(activeUserName);
         const [eventDate, setEventDate] = useState('');
         const [startTime, setStartTime] = useState('');
         const [endTime, setEndTime] = useState('');
@@ -106,24 +119,18 @@
         };
 
         const handleOpenModal = (postToEdit = null) => {
-            // Check permission: Student cannot open modal
-            if (currentRole === 'STUDENT') {
-                alert('Access Denied: Students have read-only access.');
+            if (currentRole !== 'ADMIN') {
+                alert('Access Denied: Only Administrators can publish or edit notices.');
                 return;
             }
 
             if (postToEdit) {
-                // Teacher cannot edit Events
-                if (currentRole === 'TEACHER' && postToEdit.type === 'EVENT') {
-                    alert('Access Denied: Teachers can only edit announcements. Event management is restricted to Administrators.');
-                    return;
-                }
                 setEditingId(postToEdit.id);
                 setPostType(postToEdit.type || 'ANNOUNCEMENT');
                 setTitle(postToEdit.title || '');
                 setContent(postToEdit.content || '');
                 setCourseId(postToEdit.courseId || 'SE2030');
-                setAuthorId(postToEdit.authorId || (currentRole === 'TEACHER' ? 'Prof. Kanishka (Teacher)' : 'System Admin'));
+                setAuthorId(postToEdit.authorId || 'System Admin');
                 setEventDate(postToEdit.eventDate || '');
                 setStartTime(postToEdit.startTime ? postToEdit.startTime.substring(0, 5) : '');
                 setEndTime(postToEdit.endTime ? postToEdit.endTime.substring(0, 5) : '');
@@ -134,7 +141,7 @@
                 setTitle('');
                 setContent('');
                 setCourseId('SE2030');
-                setAuthorId(currentRole === 'TEACHER' ? 'Prof. Kanishka (Teacher)' : 'System Admin');
+                setAuthorId('System Admin');
                 setEventDate('');
                 setStartTime('');
                 setEndTime('');
@@ -156,8 +163,8 @@
             if (!content.trim()) errs.content = 'Description content is required.';
             if (!courseId.trim()) errs.courseId = 'Target course is required.';
             if (postType === 'EVENT') {
-                if (currentRole === 'TEACHER') {
-                    alert('Access Denied: Teachers cannot publish events.');
+                if (currentRole !== 'ADMIN') {
+                    alert('Access Denied: Only Administrators can publish events.');
                     return false;
                 }
                 if (!eventDate) errs.eventDate = 'Event date is required.';
@@ -185,7 +192,7 @@
                 title: title.trim(),
                 content: content.trim(),
                 courseId: courseId.trim(),
-                authorId: authorId.trim() || 'Lecturer/Admin',
+                authorId: authorId.trim() || 'System Admin',
                 eventDate: postType === 'EVENT' ? eventDate : null,
                 startTime: postType === 'EVENT' ? (startTime.length === 5 ? startTime + ':00' : startTime) : null,
                 endTime: postType === 'EVENT' ? (endTime.length === 5 ? endTime + ':00' : endTime) : null,
@@ -207,7 +214,7 @@
 
                 const data = await res.json();
                 if (res.ok) {
-                    showToast(editingId ? 'Post updated successfully!' : 'Notice published & notifications dispatched to enrolled students!');
+                    showToast(editingId ? 'Post updated successfully!' : 'Notice published & notifications dispatched!');
                     handleCloseModal();
                     fetchPosts();
                 } else {
@@ -222,14 +229,8 @@
         };
 
         const handleCancelOrDelete = async (post) => {
-            // Permission check: Student cannot delete
-            if (currentRole === 'STUDENT') {
-                alert('Access Denied: Students cannot cancel or delete posts.');
-                return;
-            }
-            // Teacher cannot delete Events
-            if (currentRole === 'TEACHER' && post.type === 'EVENT') {
-                alert('Access Denied: Teachers can only manage announcements. Event cancellation is restricted to Administrators.');
+            if (currentRole !== 'ADMIN') {
+                alert('Access Denied: Only Administrators can cancel or delete posts.');
                 return;
             }
 
@@ -262,7 +263,7 @@
 
         return (
             <div className="announcements-system-wrapper">
-                {/* Header & Role Switcher Toolbar */}
+                {/* Header Toolbar */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h2 style={{ fontSize: '24px', color: 'var(--color-primary)' }}>Announcements & Course Events</h2>
@@ -272,20 +273,6 @@
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        {/* Interactive Role Selector for Access Matrix Testing */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f1f5f9', padding: '6px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--color-primary)' }}>Active Role:</span>
-                            <select 
-                                value={currentRole}
-                                onChange={(e) => setCurrentRole(e.target.value)}
-                                style={{ border: 'none', backgroundColor: 'transparent', fontWeight: '700', color: 'var(--color-accent)', cursor: 'pointer' }}
-                            >
-                                <option value="ADMIN">ADMIN (Full Access)</option>
-                                <option value="TEACHER">TEACHER (Announcements Only)</option>
-                                <option value="STUDENT">STUDENT (Read Only)</option>
-                            </select>
-                        </div>
-
                         <select 
                             value={filterCourse} 
                             onChange={(e) => setFilterCourse(e.target.value)}
@@ -298,26 +285,18 @@
                             <option value="BM1010">BM1010 - Principles of Marketing</option>
                         </select>
 
-                        {/* Publish Button (Hidden for Student) */}
-                        {currentRole !== 'STUDENT' && (
+                        {/* Publish Button (Admin Only: Full Read, Write, Edit, Delete) */}
+                        {currentRole === 'ADMIN' && (
                             <button 
                                 className="btn btn-primary"
                                 onClick={() => handleOpenModal(null)}
                                 style={{ gap: '6px' }}
                             >
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                {currentRole === 'TEACHER' ? 'Publish Announcement' : 'Publish Notice / Event'}
+                                Publish Notice / Event
                             </button>
                         )}
                     </div>
-                </div>
-
-                {/* Role Matrix Indicator Banner */}
-                <div style={{ padding: '10px 16px', borderRadius: 'var(--radius-md)', backgroundColor: currentRole === 'ADMIN' ? '#eff6ff' : currentRole === 'TEACHER' ? '#fefce8' : '#f8fafc', border: '1px solid var(--color-border)', marginBottom: '20px', fontSize: '13px', color: 'var(--color-text)' }}>
-                    <strong>Access Matrix ({currentRole}):</strong>{' '}
-                    {currentRole === 'ADMIN' && 'Full privileges granted. Can create, edit, read, and delete both Announcements and Events.'}
-                    {currentRole === 'TEACHER' && 'Lecturer access. Can create, edit, read, and delete Announcements. Events are Read-Only.'}
-                    {currentRole === 'STUDENT' && 'Student access. Read-only permissions across all announcements and scheduled events.'}
                 </div>
 
                 {/* Toast Alert */}
@@ -463,7 +442,7 @@
 
                 {/* CREATE / EDIT MODAL */}
                 {isModalOpen && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(6,19,36,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyCenter: 'center', padding: '20px' }}>
+                    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(6,19,36,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
                         <div style={{ backgroundColor: 'white', borderRadius: 'var(--radius-md)', width: '100%', maxWidth: '640px', margin: 'auto', padding: '30px', boxShadow: 'var(--shadow-lg)', maxHeight: '90vh', overflowY: 'auto' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                                 <h3 style={{ fontSize: '20px', color: 'var(--color-primary)' }}>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${quiz.title} + ' - EduFrame'">Take Quiz - EduFrame</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="topbar">
+    <div class="brand">EduFrame <span>Quiz &amp; Assessment</span></div>
+    <div class="topbar-right">
+        <span id="timerChip" class="timer-chip">--:--</span>
+    </div>
+</div>
+
+<div class="page-narrow" style="max-width:700px;">
+    <h1 th:text="${quiz.title}"></h1>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:0%;" id="progressFill"></div></div>
+    <p class="text-muted" style="font-size:13px;" id="progressLabel">0 of <span th:text="${#lists.size(questions)}"></span> answered</p>
+
+    <form th:action="@{/student/attempts/{id}/submit(id=${attempt.id})}" method="post" id="quizForm">
+        <div class="card question-card" th:each="q, iter : ${questions}">
+            <div class="question-number" th:text="'QUESTION ' + (${iter.index} + 1) + ' OF ' + ${#lists.size(questions)}"></div>
+            <h3 th:text="${q.questionText}" style="margin-bottom:4px;"></h3>
+            <div class="question-marks" th:text="${q.marks} + ' mark(s)'" style="margin-bottom:14px;"></div>
+
+            <!-- MCQ -->
+            <div th:if="${q.questionType.name() == 'MCQ'}">
+                <label class="option-row" th:each="o : ${q.options}">
+                    <input type="radio" th:name="'answer_' + ${q.id}" th:value="${o.optionText}" class="answer-input" required>
+                    <span th:text="${o.optionText}"></span>
+                </label>
+            </div>
+
+            <!-- TRUE/FALSE -->
+            <div th:if="${q.questionType.name() == 'TRUE_FALSE'}">
+                <label class="option-row">
+                    <input type="radio" th:name="'answer_' + ${q.id}" value="TRUE" class="answer-input" required>
+                    <span>True</span>
+                </label>
+                <label class="option-row">
+                    <input type="radio" th:name="'answer_' + ${q.id}" value="FALSE" class="answer-input" required>
+                    <span>False</span>
+                </label>
+            </div>
+
+            <!-- SHORT ANSWER -->
+            <div th:if="${q.questionType.name() == 'SHORT_ANSWER'}">
+                <input type="text" th:name="'answer_' + ${q.id}" placeholder="Type your answer..." class="answer-input" required>
+            </div>
+        </div>
+
+        <div class="card" style="text-align:center;">
+            <button type="submit" class="btn btn-primary" style="padding:12px 30px;">Submit quiz</button>
+            <p class="text-muted" style="font-size:12.5px; margin-top:10px;">You can't change your answers after submitting.</p>
+        </div>
+    </form>
+</div>
+
+<script th:inline="javascript">
+    const timerMinutes = /*[[${quiz.timerMinutes}]]*/ 15;
+    const startedAtIso = /*[[${attempt.startedAt}]]*/ null;
+
+    const deadline = new Date(startedAtIso);
+    deadline.setMinutes(deadline.getMinutes() + timerMinutes);
+
+    const timerChip = document.getElementById('timerChip');
+    const quizForm = document.getElementById('quizForm');
+
+    function tick() {
+        const now = new Date();
+        const remainingMs = deadline - now;
+        if (remainingMs <= 0) {
+            timerChip.textContent = '00:00';
+            quizForm.submit();
+            return;
+        }
+        const totalSeconds = Math.floor(remainingMs / 1000);
+        const mm = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const ss = String(totalSeconds % 60).padStart(2, '0');
+        timerChip.textContent = mm + ':' + ss;
+        if (totalSeconds < 60) {
+            timerChip.classList.add('timer-low');
+        }
+    }
+    tick();
+    setInterval(tick, 1000);
+
+    // progress tracking
+    const inputs = document.querySelectorAll('.answer-input');
+    const questionCount = /*[[${#lists.size(questions)}]]*/ 1;
+    const progressFill = document.getElementById('progressFill');
+    const progressLabel = document.getElementById('progressLabel');
+
+    function updateProgress() {
+        const answeredNames = new Set();
+        inputs.forEach(function (input) {
+            if ((input.type === 'radio' && input.checked) || (input.type === 'text' && input.value.trim() !== '')) {
+                answeredNames.add(input.name);
+            }
+        });
+        const answered = answeredNames.size;
+        progressFill.style.width = Math.round((answered / questionCount) * 100) + '%';
+        progressLabel.textContent = answered + ' of ' + questionCount + ' answered';
+    }
+    inputs.forEach(function (input) {
+        input.addEventListener('change', updateProgress);
+        input.addEventListener('keyup', updateProgress);
+    });
+    updateProgress();
+</script>
+</body>
+</html>

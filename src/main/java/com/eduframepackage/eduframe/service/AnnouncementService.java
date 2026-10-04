@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
  * Handles validation, role-based authorization, schedule conflict checking,
  * auto-expiry lifecycle, and notifications.
  */
+import jakarta.annotation.PostConstruct;
+
 @Service
 @Transactional
 public class AnnouncementService {
@@ -34,6 +36,60 @@ public class AnnouncementService {
     public AnnouncementService(AnnouncementRepository repository, NotificationService notificationService) {
         this.repository = repository;
         this.notificationService = notificationService;
+    }
+
+    @PostConstruct
+    public void seedInitialEvents() {
+        if (repository.count() == 0) {
+            // Seed sample live events & announcements
+            Announcement evt1 = new Announcement();
+            evt1.setType(PostType.EVENT);
+            evt1.setTitle("Software Architecture & Design Review");
+            evt1.setContent("Interactive live session reviewing MVC architecture patterns, UML component diagrams, and Spring Boot service structure for SE2030 assignment.");
+            evt1.setAuthorId("Prof. Kanishka Jayasinghe");
+            evt1.setCourseId("SE2030");
+            evt1.setEventDate(LocalDate.of(2026, 10, 14));
+            evt1.setStartTime(LocalTime.of(14, 30));
+            evt1.setEndTime(LocalTime.of(16, 30));
+            evt1.setLocationUrl("https://meet.google.com/eduframe-se2030");
+            evt1.setStatus(PostStatus.ACTIVE);
+            repository.save(evt1);
+
+            Announcement evt2 = new Announcement();
+            evt2.setType(PostType.EVENT);
+            evt2.setTitle("Mid-Term Exam Preparation & Revision");
+            evt2.setContent("Comprehensive Q&A session covering OOP principles, inheritance, abstract classes, and exception handling in Java.");
+            evt2.setAuthorId("Dr. Tharindu Senanayake");
+            evt2.setCourseId("IT1010");
+            evt2.setEventDate(LocalDate.of(2026, 10, 20));
+            evt2.setStartTime(LocalTime.of(10, 0));
+            evt2.setEndTime(LocalTime.of(12, 0));
+            evt2.setLocationUrl("https://zoom.us/j/eduframe-it1010");
+            evt2.setStatus(PostStatus.ACTIVE);
+            repository.save(evt2);
+
+            Announcement evt3 = new Announcement();
+            evt3.setType(PostType.EVENT);
+            evt3.setTitle("Digital Logic & K-Map Workshop");
+            evt3.setContent("Hands-on lab tutorial for simplifying multi-variable boolean expressions using Karnaugh maps.");
+            evt3.setAuthorId("Dr. Priyantha Alwis");
+            evt3.setCourseId("EE1020");
+            evt3.setEventDate(LocalDate.of(2026, 10, 27));
+            evt3.setStartTime(LocalTime.of(9, 30));
+            evt3.setEndTime(LocalTime.of(11, 30));
+            evt3.setLocationUrl("https://teams.microsoft.com/eduframe-ee1020");
+            evt3.setStatus(PostStatus.ACTIVE);
+            repository.save(evt3);
+
+            Announcement ann1 = new Announcement();
+            ann1.setType(PostType.ANNOUNCEMENT);
+            ann1.setTitle("Welcome to Semester 1 Academic Year 2026");
+            ann1.setContent("All course materials, syllabus documents, and assignment schedules have been published across the EduFrame portal.");
+            ann1.setAuthorId("Admin Team");
+            ann1.setCourseId("SE2030");
+            ann1.setStatus(PostStatus.ACTIVE);
+            repository.save(ann1);
+        }
     }
 
     public AnnouncementDTO createPost(AnnouncementDTO dto) {
