@@ -25,7 +25,32 @@
             <div class="main-player-col">
                 <!-- Video Container -->
                 <div class="video-frame-container">
-                    <div class="mock-player">
+                    <!-- Advertisement Player -->
+                    <div id="advertisementPlayer" class="advertisement-player" style="display: none;">
+
+                        <div class="advertisement-player-label">
+                            Advertisement
+                        </div>
+
+                        <!-- Image Advertisement -->
+                        <img id="advertisementImage"
+                             alt="Advertisement"
+                             style="display: none;">
+
+                        <!-- Video Advertisement -->
+                        <video id="advertisementVideo"
+                               style="display: none;"
+                               controls>
+                        </video>
+
+                        <button id="skipAdvertisement"
+                                type="button"
+                                style="display: none;">
+                            Skip Ad
+                        </button>
+
+                    </div>
+                    <div class="mock-player" id="mainVideoPlayer">
                         <!-- Play Button Overlay -->
                         <div class="play-trigger" id="mockPlayBtn">
                             <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -252,6 +277,200 @@
     
     <!-- Scripts -->
     <div th:replace="~{layout/base :: scripts}"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+
+
+            const advertisementPlayer =
+                document.getElementById("advertisementPlayer");
+
+            const advertisementImage =
+                document.getElementById("advertisementImage");
+
+            const advertisementVideo =
+                document.getElementById("advertisementVideo");
+
+            const skipAdvertisement =
+                document.getElementById("skipAdvertisement");
+
+            const mainVideoPlayer =
+                document.getElementById("mainVideoPlayer");
+
+
+            try {
+
+                // Get advertisements from backend
+                const response = await fetch("/api/advertisements");
+
+                if (!response.ok) {
+                    throw new Error("Could not load advertisements");
+                }
+
+                const advertisements = await response.json();
+
+
+                // Find an ACTIVE advertisement
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                // Get all valid advertisements
+                console.table(advertisements);
+                console.log(
+                    advertisements
+                        .filter(ad => ad.id === 21 || ad.id === 22)
+                        .map(ad => ({
+                            id: ad.id,
+                            title: ad.title,
+                            status: ad.status,
+                            startDate: ad.startDate,
+                            endDate: ad.endDate,
+                            mediaType: ad.mediaType,
+                            imageUrl: ad.imageUrl
+                        }))
+                );
+                const validAdvertisements = advertisements.filter(ad => {
+
+                    const startDate = new Date(ad.startDate + "T00:00:00");
+                    const endDate = new Date(ad.endDate + "T23:59:59");
+
+                    return (
+                        ad.status === "ACTIVE" &&
+                        startDate <= today &&
+                        endDate >= today &&
+                        (
+                            (ad.mediaType === "IMAGE" && ad.imageUrl) ||
+                            (ad.mediaType === "VIDEO" && ad.videoUrl)
+                        )
+                    );
+                });
+
+                // Select one advertisement randomly
+                const activeAdvertisement =
+                    validAdvertisements.length > 0
+                        ? validAdvertisements[
+                            Math.floor(Math.random() * validAdvertisements.length)
+                            ]
+                        : null;
+                console.log(
+                    "VALID AD TITLES:",
+                    validAdvertisements.map(ad => ad.title)
+                );
+
+                console.log(
+                    "SELECTED:",
+                    activeAdvertisement ? activeAdvertisement.title : "NONE"
+                );
+
+                console.log("VALID ADS:", validAdvertisements);
+                console.log("SELECTED AD:", activeAdvertisement);
+
+
+                // No active advertisement
+                if (!activeAdvertisement) {
+                    mainVideoPlayer.style.display = "block";
+                    return;
+                }
+
+
+                // Hide main video while advertisement is playing
+                mainVideoPlayer.style.display = "none";
+
+                // Show advertisement area
+                advertisementPlayer.style.display = "block";
+
+
+                // ==========================
+                // IMAGE ADVERTISEMENT
+                // ==========================
+
+                if (
+                    activeAdvertisement.mediaType === "IMAGE" &&
+                    activeAdvertisement.imageUrl
+                ) {
+
+                    advertisementImage.src =
+                        activeAdvertisement.imageUrl;
+
+                    advertisementImage.style.display = "block";
+
+                    skipAdvertisement.style.display = "block";
+                }
+
+
+                    // ==========================
+                    // VIDEO ADVERTISEMENT
+                // ==========================
+
+                else if (
+                    activeAdvertisement.mediaType === "VIDEO" &&
+                    activeAdvertisement.videoUrl
+                ) {
+
+                    advertisementVideo.src =
+                        activeAdvertisement.videoUrl;
+
+                    advertisementVideo.style.display = "block";
+
+                    skipAdvertisement.style.display = "block";
+
+                    // Allow video advertisement to autoplay
+                    advertisementVideo.muted = true;
+                    advertisementVideo.autoplay = true;
+
+                    advertisementVideo.play().catch(error => {
+                        console.log("Video autoplay blocked:", error);
+                    });
+
+
+                    // When advertisement video finishes
+                    advertisementVideo.addEventListener(
+                        "ended",
+                        showMainVideo
+                    );
+                }
+
+
+                // Advertisement has no valid media
+                else {
+                    showMainVideo();
+                }
+
+
+                // Skip button
+                skipAdvertisement.addEventListener(
+                    "click",
+                    showMainVideo
+                );
+
+
+                function showMainVideo() {
+
+                    advertisementVideo.pause();
+
+                    advertisementPlayer.style.display = "none";
+
+                    advertisementImage.style.display = "none";
+                    advertisementVideo.style.display = "none";
+                    skipAdvertisement.style.display = "none";
+
+                    mainVideoPlayer.style.display = "block";
+                }
+
+
+            } catch (error) {
+
+                console.error(
+                    "Advertisement loading error:",
+                    error
+                );
+
+                // Advertisement error should not stop lecture
+                mainVideoPlayer.style.display = "block";
+            }
+
+        });
+    </script>
 
 </body>
 </html>

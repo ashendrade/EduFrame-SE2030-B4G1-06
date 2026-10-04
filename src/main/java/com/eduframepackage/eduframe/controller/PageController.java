@@ -193,4 +193,9 @@ public class PageController {
     public String staffLogin() {
         return "redirect:/login?role=staff";
     }
+
+    @GetMapping("/advertisements")
+    public String advertisementsPage() {
+        return "advertisements";
+    }
 }

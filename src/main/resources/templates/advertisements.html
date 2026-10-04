@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Advertisement Management - EduFrame</title>
+
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body class="advertisement-page">
+
+<!-- Advertisement Header -->
+<section class="advertisement-hero">
+    <div class="container">
+        <div class="advertisement-hero-content">
+            <span class="advertisement-badge">EduFrame Advertising</span>
+
+            <h1>Advertisement <span>Management</span></h1>
+
+            <p>
+                Create, manage and organize advertisements displayed
+                across the EduFrame platform.
+            </p>
+        </div>
+    </div>
+</section>
+
+
+<!-- Main Content -->
+<main class="container advertisement-container">
+
+    <!-- Add Advertisement Form -->
+    <section class="advertisement-form-card">
+
+        <div class="advertisement-section-header">
+            <div>
+                <h2>Add Advertisement</h2>
+                <p>Enter the advertisement information and upload an image or video.</p>
+            </div>
+        </div>
+
+        <form id="advertisementForm" class="advertisement-form">
+
+            <!-- Title -->
+            <div class="advertisement-form-group advertisement-full-width">
+                <label for="title">Advertisement Title</label>
+                <input
+                        type="text"
+                        id="title"
+                        class="advertisement-input"
+                        placeholder="Enter advertisement title"
+                        required>
+            </div>
+
+            <!-- Description -->
+            <div class="advertisement-form-group advertisement-full-width">
+                <label for="description">Description</label>
+                <textarea
+                        id="description"
+                        class="advertisement-input advertisement-textarea"
+                        placeholder="Enter advertisement description"
+                        required></textarea>
+            </div>
+
+            <!-- Advertiser -->
+            <div class="advertisement-form-group">
+                <label for="advertiserName">Advertiser Name</label>
+                <input
+                        type="text"
+                        id="advertiserName"
+                        class="advertisement-input"
+                        placeholder="Enter advertiser name"
+                        required>
+            </div>
+
+            <!-- Budget -->
+            <div class="advertisement-form-group">
+                <label for="budget">Budget</label>
+                <input
+                        type="number"
+                        id="budget"
+                        class="advertisement-input"
+                        min="0"
+                        placeholder="Enter budget"
+                        required>
+            </div>
+
+            <!-- Start Date -->
+            <div class="advertisement-form-group">
+                <label for="startDate">Start Date</label>
+                <input
+                        type="date"
+                        id="startDate"
+                        class="advertisement-input"
+                        required>
+            </div>
+
+            <!-- End Date -->
+            <div class="advertisement-form-group">
+                <label for="endDate">End Date</label>
+                <input
+                        type="date"
+                        id="endDate"
+                        class="advertisement-input"
+                        required>
+            </div>
+
+            <!-- Status -->
+            <div class="advertisement-form-group advertisement-full-width">
+                <label for="status">Status</label>
+
+                <select
+                        id="status"
+                        class="advertisement-input"
+                        required>
+
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+
+                </select>
+            </div>
+
+
+            <!-- Media Upload -->
+            <div class="advertisement-form-group advertisement-full-width">
+
+                <label for="mediaFile">
+                    Advertisement Image / Video
+                </label>
+
+                <div class="advertisement-upload-box">
+
+                    <div class="advertisement-upload-icon">
+                        ↑
+                    </div>
+
+                    <div class="advertisement-upload-info">
+                        <strong>Upload Advertisement Media</strong>
+                        <span>Select an image or video from your device</span>
+                    </div>
+
+                    <input
+                            type="file"
+                            id="mediaFile"
+                            accept="image/*,video/*">
+
+                </div>
+
+            </div>
+
+
+            <!-- Submit -->
+            <div class="advertisement-form-actions advertisement-full-width">
+
+                <button
+                        type="submit"
+                        class="btn btn-primary advertisement-submit-btn">
+
+                    Add Advertisement
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- Advertisement List -->
+    <section class="advertisement-list-section">
+
+        <div class="advertisement-section-header">
+
+            <div>
+                <span class="advertisement-section-label">
+                    Current Campaigns
+                </span>
+
+                <h2>Advertisements</h2>
+
+                <p>
+                    View and manage advertisements currently stored in EduFrame.
+                </p>
+            </div>
+
+        </div>
+
+
+        <div
+                id="advertisementList"
+                class="advertisement-grid">
+
+            <!-- Advertisements are loaded using advertisements.js -->
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script src="/js/advertisements.js"></script>
+
+</body>
+</html>

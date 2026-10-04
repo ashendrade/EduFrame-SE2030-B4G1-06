@@ -21,6 +21,47 @@
         </div>
     </section>
 
+    <!-- Home Advertisement Slider -->
+    <section class="container" style="margin-top: 40px; margin-bottom: 90px;">
+
+        <div id="homeAdvertisement"
+             style="
+            position: relative;
+            max-width: 900px;
+            height: 220px;
+            margin: auto;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #f4f4f4;
+            display: none;
+         ">
+
+        <span style="
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.65);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 2;
+        ">
+            Sponsored
+        </span>
+
+            <img id="homeAdvertisementImage"
+                 src=""
+                 alt="Advertisement"
+                 style="
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+             ">
+        </div>
+
+    </section>
+
     <!-- 3. Campus Quick Stats Bar -->
     <section class="container" style="margin-bottom: 60px;">
         <div class="stats-bar animate-fade">
@@ -162,6 +203,64 @@
     
     <!-- 8. Scripts -->
     <div th:replace="~{layout/base :: scripts}"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+
+            const adContainer = document.getElementById("homeAdvertisement");
+            const adImage = document.getElementById("homeAdvertisementImage");
+
+            try {
+                const response = await fetch("/api/advertisements");
+                const advertisements = await response.json();
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                // Get currently active IMAGE advertisements
+                const activeAds = advertisements.filter(ad => {
+
+                    const startDate = new Date(ad.startDate + "T00:00:00");
+                    const endDate = new Date(ad.endDate + "T23:59:59");
+
+                    return (
+                        ad.status === "ACTIVE" &&
+                        startDate <= today &&
+                        endDate >= today &&
+                        ad.mediaType === "IMAGE" &&
+                        ad.imageUrl
+                    );
+                });
+
+                if (activeAds.length === 0) {
+                    return;
+                }
+
+                adContainer.style.display = "block";
+
+                let currentIndex = 0;
+
+                function showAdvertisement() {
+                    adImage.src = activeAds[currentIndex].imageUrl;
+
+                    currentIndex++;
+
+                    if (currentIndex >= activeAds.length) {
+                        currentIndex = 0;
+                    }
+                }
+
+                // Show first advertisement immediately
+                showAdvertisement();
+
+                // Change advertisement every 5 seconds
+                setInterval(showAdvertisement, 5000);
+
+            } catch (error) {
+                console.error("Failed to load home advertisements:", error);
+            }
+        });
+    </script>
 
 </body>
 </html>
