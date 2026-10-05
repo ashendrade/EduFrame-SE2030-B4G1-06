@@ -270,25 +270,29 @@
                     } else if (ad.mediaType === "VIDEO" && ad.videoUrl) {
                         const url = ad.videoUrl;
                         if (url.includes("youtube.com") || url.includes("youtu.be")) {
-                            // YouTube ad video url formatting
+                            // YouTube ad video url formatting - ensure unmuted autoplay
                             let embedUrl = url;
                             if (!url.includes("/embed/")) {
                                 const videoIdMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([\w-]+)/);
                                 if (videoIdMatch && videoIdMatch[1]) {
-                                    embedUrl = `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1&mute=1`;
+                                    embedUrl = `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1&mute=0`;
                                 }
-                            } else if (!url.includes("autoplay=1")) {
-                                embedUrl += (embedUrl.includes("?") ? "&" : "?") + "autoplay=1&mute=1";
+                            } else {
+                                embedUrl = embedUrl.replace("mute=1", "mute=0");
+                                if (!embedUrl.includes("autoplay=1")) {
+                                    embedUrl += (embedUrl.includes("?") ? "&" : "?") + "autoplay=1&mute=0";
+                                }
                             }
                             advertisementIframe.src = embedUrl;
                             advertisementIframe.style.display = "block";
                         } else {
                             advertisementVideo.src = url.startsWith('/') ? url : '/' + url;
                             advertisementVideo.style.display = "block";
-                            advertisementVideo.muted = true;
+                            advertisementVideo.muted = false;
+                            advertisementVideo.volume = 1.0;
                             advertisementVideo.autoplay = true;
 
-                            advertisementVideo.play().catch(err => console.log("Ad video autoplay blocked:", err));
+                            advertisementVideo.play().catch(err => console.log("Ad video playback:", err));
                             advertisementVideo.onended = () => finishAd(onComplete);
                         }
                         skipAdvertisement.style.display = "block";

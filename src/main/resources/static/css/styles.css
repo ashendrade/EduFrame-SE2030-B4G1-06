@@ -4843,6 +4843,48 @@ textarea.form-control {
     }
 }
 
+/* ==========================================
+   BROWSER SURFACE THEMING & CRAFT FLOOR
+   ========================================== */
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 6px;
+    border: 2px solid #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Custom Text Selection */
+::selection {
+    background-color: rgba(242, 169, 0, 0.25);
+    color: var(--color-primary-dark);
+}
+
+/* Accessible & Theme-consistent Focus Rings */
+:focus-visible {
+    outline: 2px solid var(--color-secondary) !important;
+    outline-offset: 3px !important;
+}
+
+/* Tabular Numerals Alignment for Data Displays */
+.tabular-nums, .attempt-title, .video-views, .student-stat-val {
+    font-variant-numeric: tabular-nums;
+}
+
+
 
 
 
