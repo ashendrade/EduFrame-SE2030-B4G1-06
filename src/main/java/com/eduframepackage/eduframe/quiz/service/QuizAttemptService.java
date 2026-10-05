@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Full CRUD service for {@link QuizAttempt} (Entity 3/4, submissions).
@@ -41,15 +42,16 @@ public class QuizAttemptService {
             throw new IllegalStateException("This quiz is not currently open for attempts");
         }
 
-        quizAttemptRepository
-                .findFirstByQuizAndStudentAndStatusOrderByStartedAtDesc(quiz, student, AttemptStatus.IN_PROGRESS)
-                .ifPresent(existing -> {
-                    throw new IllegalStateException("You already have an attempt in progress for this quiz");
-                });
+        Optional<QuizAttempt> existingAttempt = quizAttemptRepository
+                .findFirstByQuizAndStudentAndStatusOrderByStartedAtDesc(quiz, student, AttemptStatus.IN_PROGRESS);
+        if (existingAttempt.isPresent()) {
+            return existingAttempt.get();
+        }
 
         QuizAttempt attempt = QuizAttempt.builder()
                 .quiz(quiz)
                 .student(student)
+                .startedAt(java.time.LocalDateTime.now())
                 .status(AttemptStatus.IN_PROGRESS)
                 .build();
         return quizAttemptRepository.save(attempt);

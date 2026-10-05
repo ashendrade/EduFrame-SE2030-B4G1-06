@@ -23,10 +23,15 @@
                   th:classappend="${attempt.passed} ? 'badge-pass' : 'badge-fail'"
                   th:text="${attempt.passed} ? 'You passed!' : 'Not passed this time'"></span>
         </div>
-        <p class="text-muted mt-24" th:if="${attempt.passed}">
-            Your certificate has been generated automatically &mdash; find it under
-            <a th:href="@{/student/certificates}">My Certificates</a>.
-        </p>
+        <div class="mt-24" th:if="${attempt.passed}" style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+            <a th:if="${certificate != null}" th:href="@{/certificates/{id}/download(id=${certificate.id})}" target="_blank" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Download Official Certificate (PDF)</span>
+            </a>
+            <a th:href="@{/student/certificates}" class="btn btn-secondary" style="display:inline-flex; align-items:center; gap:8px;">
+                🎓 <span>View All My Certificates</span>
+            </a>
+        </div>
         <p class="text-muted mt-24" th:unless="${attempt.passed}">
             You needed <span th:text="${quiz.passMarkPercentage}"></span>% to pass. You're welcome to review the
             material and look out for another attempt if your instructor reopens this quiz.
@@ -34,7 +39,7 @@
     </div>
 
     <div style="text-align:center; margin-top:20px;">
-        <a th:href="@{/student/dashboard}" class="btn btn-secondary">Back to dashboard</a>
+        <a th:href="@{/student/dashboard}" class="btn btn-outline-light" style="color: var(--color-primary); border-color: var(--color-border);">Back to Dashboard</a>
     </div>
 </div>
 <div th:replace="~{layout/base :: footer}"></div>

@@ -36,10 +36,13 @@ public class StudentQuizController {
         List<QuizAttempt> myAttempts = quizAttemptService.getAttemptsForStudent(student);
         List<com.eduframepackage.eduframe.model.Course> enrolledCourses = courseService.getEnrolledCoursesForStudent(student.getEmail());
 
+        List<Certificate> myCertificates = certificateService.getCertificatesForStudent(student);
+
         model.addAttribute("student", student);
         model.addAttribute("quizzes", availableQuizzes);
         model.addAttribute("myAttempts", myAttempts);
         model.addAttribute("enrolledCourses", enrolledCourses);
+        model.addAttribute("myCertificates", myCertificates);
         return "student/dashboard";
     }
 
@@ -98,9 +101,10 @@ public class StudentQuizController {
         // this guarantees a passed student still gets their certificate the
         // moment they view their result. issueCertificateForAttempt() is
         // idempotent - safe to call even if one already exists.
+        Certificate certificate = null;
         if (Boolean.TRUE.equals(attempt.getPassed())) {
             try {
-                certificateService.issueCertificateForAttempt(attemptId);
+                certificate = certificateService.issueCertificateForAttempt(attemptId);
             } catch (Exception ex) {
                 System.err.println("[Certificate] Failed to issue certificate for attempt "
                         + attemptId + ": " + ex);
@@ -110,6 +114,7 @@ public class StudentQuizController {
 
         model.addAttribute("attempt", attempt);
         model.addAttribute("quiz", attempt.getQuiz());
+        model.addAttribute("certificate", certificate);
         return "student/quiz-result";
     }
 

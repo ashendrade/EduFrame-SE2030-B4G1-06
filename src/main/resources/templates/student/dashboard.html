@@ -41,6 +41,13 @@
                         <div class="student-stat-lbl">Attempts</div>
                     </div>
                 </div>
+                <a th:href="@{/student/certificates}" class="student-stat-pill" style="text-decoration: none; cursor: pointer;">
+                    <div class="student-stat-icon">📜</div>
+                    <div>
+                        <div class="student-stat-val" th:text="${myCertificates != null ? #lists.size(myCertificates) : 0}">0</div>
+                        <div class="student-stat-lbl">Certificates</div>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
@@ -169,6 +176,7 @@
                       th:text="(${a.scorePercentage} ?: 0) + '% · ' + (${a.passed} ? 'PASSED' : 'FAILED')"></span>
                 <a th:if="${a.status.name() == 'IN_PROGRESS'}" th:href="@{/student/attempts/{id}(id=${a.id})}" class="btn btn-primary btn-sm">Resume Quiz</a>
                 <a th:if="${a.status.name() != 'IN_PROGRESS'}" th:href="@{/student/attempts/{id}/result(id=${a.id})}" class="btn btn-secondary btn-sm">View Result</a>
+                <a th:if="${a.passed}" th:href="@{/student/certificates}" class="btn btn-primary btn-sm" style="display:inline-flex; align-items:center; gap:4px;">📜 Certificate</a>
             </div>
         </div>
     </div>
