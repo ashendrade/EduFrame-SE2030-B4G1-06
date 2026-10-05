@@ -300,50 +300,298 @@ function initSupportModal() {
  */
 function initAnnouncementModal() {
     const openBtn = document.getElementById('openAnnouncementModalBtn');
-    const backdrop = document.getElementById('announcementModalBackdrop');
-    const modalRoot = document.getElementById('announcement-popup-root');
+    const dropdownMenu = document.getElementById('notificationDropdownMenu');
+    const bellBadgeDot = document.getElementById('bellBadgeDot');
+    const notifCountBadge = document.getElementById('notifCountBadge');
+    const notifListRoot = document.getElementById('notificationListRoot');
+    const tabBtns = document.querySelectorAll('.notif-tab-btn');
 
-    if (!openBtn || !backdrop || !modalRoot) return;
+    if (!openBtn || !dropdownMenu || !notifListRoot) return;
 
-    let rootInstance = null;
+    let cachedPosts = [];
+    let currentFilter = 'ALL';
+    let isFetched = false;
 
-    const closeModal = () => {
-        backdrop.style.display = 'none';
-        document.body.style.overflow = '';
-    };
+    // Fetch announcements & events from backend API
+    async function loadNotifications() {
+        try {
+            const res = await fetch('/api/announcements');
+            if (res.ok) {
+                const data = await res.json();
+                cachedPosts = Array.isArray(data) ? data : [];
+            } else {
+                cachedPosts = getFallbackNotifications();
+            }
+        } catch (err) {
+            console.warn('Unable to fetch live notifications, using system fallback:', err);
+            cachedPosts = getFallbackNotifications();
+        } finally {
+            isFetched = true;
+            updateBadge();
+            renderNotificationList();
+        }
+    }
 
+    function getFallbackNotifications() {
+        return [
+            {
+                id: 101,
+                type: 'ANNOUNCEMENT',
+                title: 'Welcome to SE2030 Software Engineering',
+                content: 'Please review the course syllabus and join the upcoming lab sessions on OOP design patterns.',
+                courseId: 'SE2030',
+                createdAt: '2026-10-04T10:00:00'
+            },
+            {
+                id: 102,
+                type: 'EVENT',
+                title: 'Guest Lecture: Scalable Microservices Architecture',
+                content: 'Live interactive Q&A session with industry experts on cloud deployment and CI/CD pipelines.',
+                courseId: 'IT1010',
+                eventDate: '2026-10-10',
+                startTime: '14:00',
+                endTime: '16:00',
+                createdAt: '2026-10-03T15:30:00'
+            },
+            {
+                id: 103,
+                type: 'ANNOUNCEMENT',
+                title: 'Quiz 2 Submission Deadline Extended',
+                content: 'The deadline for Quiz 2 has been extended to Friday 11:59 PM. Make sure to submit on time.',
+                courseId: 'EE1020',
+                createdAt: '2026-10-02T09:15:00'
+            }
+        ];
+    }
+
+    function updateBadge() {
+        const publishedPosts = cachedPosts.filter(p => p.status !== 'CANCELLED');
+        const count = publishedPosts.length;
+
+        if (notifCountBadge) {
+            notifCountBadge.textContent = count;
+        }
+
+        if (bellBadgeDot) {
+            bellBadgeDot.style.display = count > 0 ? 'block' : 'none';
+        }
+    }
+
+    function renderNotificationList() {
+        const publishedPosts = cachedPosts.filter(p => p.status !== 'CANCELLED');
+        let filtered = publishedPosts;
+
+        if (currentFilter !== 'ALL') {
+            filtered = publishedPosts.filter(p => p.type === currentFilter);
+        }
+
+        if (!filtered.length) {
+            notifListRoot.innerHTML = `
+                <div class="notif-empty-state">
+                    <div style="font-size: 24px; margin-bottom: 6px;">🔕</div>
+                    No ${currentFilter === 'EVENT' ? 'upcoming events' : currentFilter === 'ANNOUNCEMENT' ? 'notices' : 'notifications'} at this time.
+                </div>
+            `;
+            return;
+        }
+
+        notifListRoot.innerHTML = filtered.map(item => {
+            const isEvent = item.type === 'EVENT';
+            const icon = isEvent ? '📅' : '📢';
+            const iconClass = isEvent ? 'notif-icon-event' : 'notif-icon-announcement';
+            
+            let timeStr = '';
+            if (isEvent && item.eventDate) {
+                timeStr = `Event Date: ${item.eventDate} ${item.startTime ? '(' + item.startTime + ')' : ''}`;
+            } else if (item.createdAt) {
+                const dt = new Date(item.createdAt);
+                timeStr = isNaN(dt.getTime()) ? item.createdAt : dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            } else {
+                timeStr = 'Recent Notice';
+            }
+
+            return `
+                <a href="/announcements" class="notif-item">
+                    <div class="notif-icon-box ${iconClass}">${icon}</div>
+                    <div class="notif-content">
+                        <div class="notif-title-row">
+                            <span class="notif-item-title">${escapeHtml(item.title || 'Untitled Notice')}</span>
+                            ${item.courseId ? `<span class="notif-course-badge">${escapeHtml(item.courseId)}</span>` : ''}
+                        </div>
+                        <div class="notif-item-body">${escapeHtml(item.content || '')}</div>
+                        <div class="notif-item-time">${escapeHtml(timeStr)}</div>
+                    </div>
+                </a>
+            `;
+        }).join('');
+    }
+
+    function escapeHtml(str) {
+        return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // Toggle popover dropdown box on bell icon click
     openBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+
+        const isVisible = dropdownMenu.style.display === 'block';
+
+        if (isVisible) {
+            dropdownMenu.style.display = 'none';
+        } else {
+            dropdownMenu.style.display = 'block';
+            if (!isFetched) {
+                loadNotifications();
+            }
+            if (bellBadgeDot) {
+                bellBadgeDot.style.display = 'none';
+            }
+        }
+    });
+
+    // Tab button filter switching
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.getAttribute('data-notif-filter') || 'ALL';
+            renderNotificationList();
+        });
+    });
+
+    // Close dropdown popover box when clicking outside
+    document.addEventListener('click', (e) => {
+        const container = openBtn.closest('.notification-dropdown-container');
+        if (container && !container.contains(e.target)) {
+            dropdownMenu.style.display = 'none';
+        }
+    });
+
+    // Silent initial load to set badge counter
+    loadNotifications();
+}
+
+/**
+ * 8. CUSTOM WEB POPUP DIALOG ENGINE (ALERTS & CONFIRMS)
+ * Replaces native browser alert() and confirm() dialogs with elegant web popups.
+ */
+function showWebAlert(message, title = 'Notification', icon = 'ℹ️') {
+    return new Promise((resolve) => {
+        const backdrop = document.getElementById('customWebModalBackdrop');
+        const modalTitle = document.getElementById('customWebModalTitle');
+        const modalMsg = document.getElementById('customWebModalMessage');
+        const modalIcon = document.getElementById('customWebModalIcon');
+        const confirmBtn = document.getElementById('customWebModalConfirmBtn');
+        const cancelBtn = document.getElementById('customWebModalCancelBtn');
+
+        if (!backdrop) {
+            console.log(`[Alert]: ${message}`);
+            resolve(true);
+            return;
+        }
+
+        modalTitle.textContent = title;
+        modalMsg.textContent = message;
+        modalIcon.textContent = icon;
+        cancelBtn.style.display = 'none';
+        confirmBtn.textContent = 'OK';
+        confirmBtn.className = 'btn btn-primary';
+
         backdrop.style.display = 'flex';
         document.body.style.overflow = 'hidden';
 
-        if (window.ReactDOM && window.AnnouncementSystemComponent) {
-            if (!rootInstance) {
-                rootInstance = ReactDOM.createRoot(modalRoot);
-            }
-            rootInstance.render(
-                React.createElement('div', { style: { position: 'relative' } }, [
-                    React.createElement('div', {
-                        key: 'close-header',
-                        style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }
-                    }, [
-                        React.createElement('h2', { key: 'title', style: { margin: 0, fontSize: '1.4rem', color: 'var(--color-primary)' } }, '📢 Module Announcements & Notices'),
-                        React.createElement('button', {
-                            key: 'close-btn',
-                            onClick: closeModal,
-                            style: { background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: 'var(--color-text-muted)' }
-                        }, '✕')
-                    ]),
-                    React.createElement(window.AnnouncementSystemComponent, { key: 'system' })
-                ])
-            );
-        }
-    });
+        const cleanup = () => {
+            backdrop.style.display = 'none';
+            document.body.style.overflow = '';
+            confirmBtn.removeEventListener('click', onConfirm);
+        };
 
-    backdrop.addEventListener('click', (e) => {
-        if (e.target === backdrop) {
-            closeModal();
-        }
+        const onConfirm = () => {
+            cleanup();
+            resolve(true);
+        };
+
+        confirmBtn.addEventListener('click', onConfirm);
     });
 }
+
+function showWebConfirm(message, title = 'Confirm Action', icon = '❓') {
+    return new Promise((resolve) => {
+        const backdrop = document.getElementById('customWebModalBackdrop');
+        const modalTitle = document.getElementById('customWebModalTitle');
+        const modalMsg = document.getElementById('customWebModalMessage');
+        const modalIcon = document.getElementById('customWebModalIcon');
+        const confirmBtn = document.getElementById('customWebModalConfirmBtn');
+        const cancelBtn = document.getElementById('customWebModalCancelBtn');
+
+        if (!backdrop) {
+            const res = window.nativeConfirm ? window.nativeConfirm(message) : true;
+            resolve(res);
+            return;
+        }
+
+        modalTitle.textContent = title;
+        modalMsg.textContent = message;
+        modalIcon.textContent = icon;
+        cancelBtn.style.display = 'inline-block';
+        confirmBtn.textContent = 'Confirm';
+        confirmBtn.className = 'btn btn-primary';
+
+        backdrop.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        const cleanup = () => {
+            backdrop.style.display = 'none';
+            document.body.style.overflow = '';
+            confirmBtn.removeEventListener('click', onConfirm);
+            cancelBtn.removeEventListener('click', onCancel);
+        };
+
+        const onConfirm = () => {
+            cleanup();
+            resolve(true);
+        };
+
+        const onCancel = () => {
+            cleanup();
+            resolve(false);
+        };
+
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+    });
+}
+
+// Global window assignments
+window.showWebAlert = showWebAlert;
+window.showWebConfirm = showWebConfirm;
+window.nativeAlert = window.alert;
+window.nativeConfirm = window.confirm;
+
+// Override native alert for seamless backward compatibility
+window.alert = function (msg) {
+    showWebAlert(msg);
+};
+
+/**
+ * Global Password Visibility Toggle
+ */
+function togglePasswordVisibility(inputId, btnEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    
+    if (btnEl) {
+        btnEl.title = isPassword ? 'Hide Password' : 'Show Password';
+        btnEl.innerHTML = isPassword 
+            ? `<svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-secondary)" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+            : `<svg class="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    }
+}
+
+window.togglePasswordVisibility = togglePasswordVisibility;
+
 

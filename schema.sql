@@ -1,7 +1,7 @@
 /* ====================================================================
    EduFrame Database Relational Schema DDL Script for Microsoft SQL Server
    Course: IT2140 Database Design and Development (2026 Y2-S1)
-   Team: SLIIT Group B4G1-06 (Adikari A. M. T. D. et al.)
+   Team: SLIIT Group B4G1-06
    ==================================================================== */
 
 IF DB_ID('EduFrame-db') IS NULL

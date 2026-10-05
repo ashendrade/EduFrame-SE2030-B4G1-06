@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/base :: html-head('Advertisement Management')}"></head>
+<body class="advertisement-page">
+
+<!-- Header Navigation -->
+<div th:replace="~{layout/base :: header('advertisements')}"></div>
+
+<div class="container" style="margin-top: 30px;">
+    <!-- Advertisement Header -->
+    <div class="page-header" style="margin-bottom: 25px; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 20px;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <span class="badge" style="background-color: var(--color-accent); color: white; font-weight: 800; font-size: 11px;">EDUFRAME CAMPAIGNS</span>
+                <span style="font-size: 13px; color: var(--color-text-muted); font-weight: 600;">Marketing &amp; Video Ads</span>
+            </div>
+            <h1 style="font-size: 30px; color: var(--color-primary); margin: 0;">Advertisement Management</h1>
+            <p style="color: var(--color-text-muted); font-size: 14.5px; margin-top: 4px;">Create and manage video &amp; banner advertisements injected before lecture playback across EduFrame.</p>
+        </div>
+    </div>
+
+    <!-- Add / Edit Advertisement Form -->
+    <section class="advertisement-form-card" style="background: white; padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--color-border); margin-bottom: 40px;">
+        <div class="advertisement-section-header" style="margin-bottom: 20px;">
+            <h2 style="margin: 0; font-size: 1.3rem; color: var(--color-primary);">Add / Edit Advertisement</h2>
+            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--color-text-muted);">Enter campaign metadata and upload image or video media.</p>
+        </div>
+
+        <form id="advertisementForm" class="advertisement-form" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;">
+            <!-- Title -->
+            <div class="advertisement-form-group advertisement-full-width" style="grid-column: 1 / -1;">
+                <label for="title" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Advertisement Title</label>
+                <input type="text" id="title" class="form-control" placeholder="Enter advertisement title" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);">
+            </div>
+
+            <!-- Description -->
+            <div class="advertisement-form-group advertisement-full-width" style="grid-column: 1 / -1;">
+                <label for="description" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Description</label>
+                <textarea id="description" class="form-control" placeholder="Enter advertisement description" required style="width: 100%; min-height: 80px; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);"></textarea>
+            </div>
+
+            <!-- Advertiser -->
+            <div class="advertisement-form-group">
+                <label for="advertiserName" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Advertiser Name</label>
+                <input type="text" id="advertiserName" class="form-control" placeholder="Enter advertiser name" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);">
+            </div>
+
+            <!-- Budget -->
+            <div class="advertisement-form-group">
+                <label for="budget" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Budget ($ USD)</label>
+                <input type="number" id="budget" class="form-control" min="0" placeholder="Enter campaign budget" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);">
+            </div>
+
+            <!-- Start Date -->
+            <div class="advertisement-form-group">
+                <label for="startDate" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Start Date</label>
+                <input type="date" id="startDate" class="form-control" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);">
+            </div>
+
+            <!-- End Date -->
+            <div class="advertisement-form-group">
+                <label for="endDate" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">End Date</label>
+                <input type="date" id="endDate" class="form-control" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);">
+            </div>
+
+            <!-- Status -->
+            <div class="advertisement-form-group">
+                <label for="status" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Status</label>
+                <select id="status" class="form-control" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);">
+                    <option value="ACTIVE">Active (Eligible for video playback)</option>
+                    <option value="INACTIVE">Inactive (Paused)</option>
+                </select>
+            </div>
+
+            <!-- Playback Timing Position -->
+            <div class="advertisement-form-group">
+                <label for="playbackPosition" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Playback Timing (When Ad Plays)</label>
+                <select id="playbackPosition" class="form-control" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--color-border);">
+                    <option value="PRE_ROLL">Pre-Roll (Before video starts)</option>
+                    <option value="MID_ROLL">Mid-Roll (Middle of video - 50%)</option>
+                    <option value="POST_ROLL">Post-Roll (After video finishes)</option>
+                </select>
+            </div>
+
+            <!-- Media Upload -->
+            <div class="advertisement-form-group advertisement-full-width" style="grid-column: 1 / -1;">
+                <label for="mediaFile" style="display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px;">Advertisement Media (Image or Video)</label>
+                <div class="advertisement-upload-box" style="border: 2px dashed var(--color-border); padding: 20px; border-radius: 8px; background: #f8fafc;">
+                    <input type="file" id="mediaFile" accept="image/*,video/*" style="font-size: 0.85rem;">
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="advertisement-form-actions advertisement-full-width" style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
+                <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700;">
+                    Save Advertisement
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Advertisement List -->
+    <section class="advertisement-list-section" style="margin-bottom: 50px;">
+        <div class="advertisement-section-header" style="margin-bottom: 20px;">
+            <h2 style="margin: 0; font-size: 1.3rem; color: var(--color-primary);">Active &amp; Stored Campaigns</h2>
+            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--color-text-muted);">View all advertisements configured in EduFrame.</p>
+        </div>
+
+        <div id="advertisementList" class="advertisement-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+            <!-- JS dynamic content -->
+        </div>
+    </section>
+</div>
+
+<div th:replace="~{layout/base :: footer}"></div>
+<div th:replace="~{layout/base :: scripts}"></div>
+<script src="/js/advertisements.js"></script>
+</body>
+</html>

@@ -71,11 +71,38 @@
                     </button>
                 </form>
                 
-                <!-- Announcement Notification Bell Icon Button -->
-                <button id="openAnnouncementModalBtn" class="announcement-bell-btn" title="Campus Announcements" aria-label="Announcements">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                    <span class="bell-badge-dot"></span>
-                </button>
+                <!-- Announcement Notification Bell Icon Button & Popover -->
+                <div class="notification-dropdown-container" style="position: relative;">
+                    <button id="openAnnouncementModalBtn" class="announcement-bell-btn" title="Campus Announcements" aria-label="Announcements">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span class="bell-badge-dot" id="bellBadgeDot"></span>
+                    </button>
+
+                    <!-- Popup Box Dropdown -->
+                    <div id="notificationDropdownMenu" class="notification-popover-box" style="display: none;">
+                        <div class="notification-popover-header">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 15px;">🔔</span>
+                                <h4 style="margin: 0; font-size: 13.5px; font-weight: 700; color: var(--color-primary);">Announcements &amp; Events</h4>
+                            </div>
+                            <span id="notifCountBadge" class="notif-count-pill">0</span>
+                        </div>
+                        
+                        <div class="notification-popover-tabs">
+                            <button type="button" class="notif-tab-btn active" data-notif-filter="ALL">All</button>
+                            <button type="button" class="notif-tab-btn" data-notif-filter="ANNOUNCEMENT">Notices</button>
+                            <button type="button" class="notif-tab-btn" data-notif-filter="EVENT">Events</button>
+                        </div>
+
+                        <div id="notificationListRoot" class="notification-popover-list">
+                            <div class="notif-loading-state">Loading announcements...</div>
+                        </div>
+
+                        <div class="notification-popover-footer">
+                            <a th:href="@{/announcements}" class="notif-view-all-link">View All Notices &amp; Calendar &rarr;</a>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Guest View (Not Authenticated) -->
                 <th:block sec:authorize="isAnonymous()">
@@ -111,6 +138,13 @@
                                 <a th:href="@{/dashboard}">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                                     Admin Dashboard
+                                </a>
+                            </li>
+                            <!-- Advertisement Management -->
+                            <li class="dropdown-item" sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
+                                <a th:href="@{/advertisements}">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: text-bottom;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                    Ad Campaigns &amp; Video Ads
                                 </a>
                             </li>
                             <!-- My Profile -->
@@ -161,7 +195,7 @@
 
     <!-- Global Announcement Popup Modal Overlay Backdrop -->
     <div id="announcementModalBackdrop" class="support-modal-backdrop" style="display: none;">
-        <div class="support-modal-wrapper animate-fade" style="max-width: 750px; width: 90%;">
+        <div class="support-modal-wrapper animate-fade" style="max-width: 800px; width: 92%; background: white; padding: 24px; border-radius: 12px; box-shadow: var(--shadow-lg); border-top: 5px solid var(--color-secondary);">
             <div id="announcement-popup-root"></div>
         </div>
     </div>
@@ -170,6 +204,21 @@
     <div id="supportModalBackdrop" class="support-modal-backdrop" style="display: none;">
         <div class="support-modal-wrapper animate-fade">
             <div id="support-modal-root"></div>
+        </div>
+    </div>
+
+    <!-- Global Custom Web Popup Dialog (Alerts & Confirmations) -->
+    <div id="customWebModalBackdrop" class="support-modal-backdrop" style="display: none; z-index: 10000; background: rgba(6, 19, 36, 0.75); align-items: center; justify-content: center;">
+        <div class="support-modal-wrapper animate-fade" style="max-width: 440px; width: 90%; background: white; padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+                <span id="customWebModalIcon" style="font-size: 26px;">⚠️</span>
+                <h3 id="customWebModalTitle" style="margin: 0; color: var(--color-primary); font-size: 1.2rem;">Notification</h3>
+            </div>
+            <p id="customWebModalMessage" style="color: var(--color-text); font-size: 0.925rem; line-height: 1.5; margin-bottom: 22px; word-break: break-word;"></p>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="customWebModalCancelBtn" class="btn btn-secondary" style="padding: 8px 18px; font-size: 0.85rem; display: none;">Cancel</button>
+                <button id="customWebModalConfirmBtn" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">OK</button>
+            </div>
         </div>
     </div>
 

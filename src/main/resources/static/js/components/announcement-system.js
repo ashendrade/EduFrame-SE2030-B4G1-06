@@ -601,11 +601,17 @@
 
     window.AnnouncementSystemComponent = AnnouncementSystem;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function mountAnnouncements() {
         const rootEl = document.getElementById('announcements-root');
         if (rootEl && window.ReactDOM) {
             const root = ReactDOM.createRoot(rootEl);
             root.render(React.createElement(AnnouncementSystem));
         }
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mountAnnouncements);
+    } else {
+        mountAnnouncements();
+    }
 })();

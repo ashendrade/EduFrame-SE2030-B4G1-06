@@ -27,7 +27,7 @@ public class PageController {
     private final List<Video> mockVideos = new ArrayList<>();
 
     public PageController() {
-        // Initialize mock videos resembling courses/modules at SLIIT
+        // Initialize sample videos with YouTube embeds (new uploads will use uploaded file path)
         mockVideos.add(new Video(
             "se2030-l1",
             "SE2030: Software Engineering - Introduction to MVC Architecture",
@@ -38,7 +38,7 @@ public class PageController {
             "2026-08-10",
             124,
             "/images/thumb-mvc.jpg",
-            "/videos/mvc.mp4"
+            "https://www.youtube.com/embed/pTb0U4xW6h8"
         ));
         mockVideos.add(new Video(
             "se2030-l2",
@@ -50,7 +50,7 @@ public class PageController {
             "2026-08-12",
             89,
             "/images/thumb-patterns.jpg",
-            "/videos/patterns.mp4"
+            "https://www.youtube.com/embed/v9ejT8FO-7I"
         ));
         mockVideos.add(new Video(
             "it1010-l5",
@@ -62,7 +62,7 @@ public class PageController {
             "2026-08-05",
             345,
             "/images/thumb-oop.jpg",
-            "/videos/oop.mp4"
+            "https://www.youtube.com/embed/3W983z2697g"
         ));
         mockVideos.add(new Video(
             "ee1020-l1",
@@ -74,7 +74,7 @@ public class PageController {
             "2026-08-01",
             78,
             "/images/thumb-kmaps.jpg",
-            "/videos/kmaps.mp4"
+            "https://www.youtube.com/embed/RO5alU6CMwE"
         ));
         mockVideos.add(new Video(
             "bm1010-l3",
@@ -86,7 +86,7 @@ public class PageController {
             "2026-08-09",
             156,
             "/images/thumb-marketing.jpg",
-            "/videos/marketing.mp4"
+            "https://www.youtube.com/embed/hJ814j2o4Q4"
         ));
         mockVideos.add(new Video(
             "cs3020-l4",
@@ -98,7 +98,7 @@ public class PageController {
             "2026-08-08",
             210,
             "/images/thumb-os.jpg",
-            "/videos/os.mp4"
+            "https://www.youtube.com/embed/EWkfqT_8e0k"
         ));
     }
 
@@ -116,6 +116,7 @@ public class PageController {
     @GetMapping("/browse")
     public String browse(@RequestParam(value = "search", required = false) String search,
                          @RequestParam(value = "category", required = false) String category,
+                         @RequestParam(value = "level", required = false) String level,
                          Model model) {
         List<Video> filtered = mockVideos;
 
@@ -135,11 +136,24 @@ public class PageController {
         }
 
         List<com.eduframepackage.eduframe.model.Course> catalogCourses = courseService.searchCourses(search, category);
+        
+        List<com.eduframepackage.eduframe.model.Course> allCourses = courseService.getAllCourses();
+        long computingCount = allCourses.stream().filter(c -> "Computing".equalsIgnoreCase(c.getCategory())).count();
+        long engineeringCount = allCourses.stream().filter(c -> "Engineering".equalsIgnoreCase(c.getCategory())).count();
+        long businessCount = allCourses.stream().filter(c -> "Business".equalsIgnoreCase(c.getCategory())).count();
 
         model.addAttribute("videos", filtered);
         model.addAttribute("courses", catalogCourses);
         model.addAttribute("searchQuery", search);
         model.addAttribute("selectedCategory", category != null ? category : "All");
+        model.addAttribute("selectedLevel", level != null ? level : "All");
+
+        model.addAttribute("totalCount", allCourses.size());
+        model.addAttribute("computingCount", computingCount);
+        model.addAttribute("engineeringCount", engineeringCount);
+        model.addAttribute("businessCount", businessCount);
+        model.addAttribute("undergradCount", allCourses.size()); // Default undergraduate catalog
+        model.addAttribute("postgradCount", 0);
         return "browse";
     }
 
@@ -227,6 +241,16 @@ public class PageController {
     @GetMapping("/events")
     public String events() {
         return "events";
+    }
+
+    @GetMapping("/announcements")
+    public String announcements() {
+        return "announcements";
+    }
+
+    @GetMapping("/advertisements")
+    public String advertisementsPage() {
+        return "advertisements";
     }
 
     @GetMapping("/dashboard")

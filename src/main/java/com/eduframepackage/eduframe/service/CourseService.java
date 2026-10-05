@@ -48,7 +48,7 @@ public class CourseService {
                     se2030.getId(),
                     "Module 1: Introduction to MVC Architecture & Design Patterns",
                     "Deep dive into Model-View-Controller design pattern in modern web architectures with concrete Java examples.",
-                    "/videos/mvc.mp4",
+                    "https://www.youtube.com/embed/pTb0U4xW6h8",
                     "45 min",
                     "SE2030_Module1_MVC_Architecture.pdf",
                     1
@@ -57,7 +57,7 @@ public class CourseService {
                     se2030.getId(),
                     "Module 2: Creational Patterns - Singleton & Factory",
                     "Learn thread-safe singletons, factory methods, and compile-time decoupling principles.",
-                    "/videos/patterns.mp4",
+                    "https://www.youtube.com/embed/v9ejT8FO-7I",
                     "52 min",
                     "SE2030_Module2_Design_Patterns.pdf",
                     2
@@ -80,7 +80,7 @@ public class CourseService {
                     it1010.getId(),
                     "Module 1: Inheritance, Abstract Classes & Interfaces",
                     "Subclassing, method overriding vs overloading, dynamic binding, and contract interfaces in Java.",
-                    "/videos/oop.mp4",
+                    "https://www.youtube.com/embed/3W983z2697g",
                     "38 min",
                     "IT1010_OOP_Java_Core.pdf",
                     1
@@ -103,7 +103,7 @@ public class CourseService {
                     ee1020.getId(),
                     "Module 1: Boolean Algebra & K-Map Circuit Minimization",
                     "Simplifying complex Boolean functions using 4-variable K-maps and implementing minimal gate circuits.",
-                    "/videos/kmaps.mp4",
+                    "https://www.youtube.com/embed/RO5alU6CMwE",
                     "65 min",
                     "EE1020_Digital_Logic_Kmaps.pdf",
                     1
@@ -218,10 +218,12 @@ public class CourseService {
     }
 
     public int getTotalEnrolledStudentsCount() {
+        long enrollmentCount = enrollmentRepository.count();
+        if (enrollmentCount > 0) {
+            return (int) enrollmentCount;
+        }
         List<Course> courses = courseRepository.findAll();
-        int sumFromCourses = courses.stream().mapToInt(c -> c.getEnrolledCount()).sum();
-        long sumFromEnrollments = enrollmentRepository.count();
-        return (int) Math.max(sumFromCourses, sumFromEnrollments);
+        return courses.stream().mapToInt(c -> c.getEnrolledCount()).sum();
     }
 
     // Module Management & Re-ordering methods
@@ -289,20 +291,81 @@ public class CourseService {
     }
 
     @Transactional
-    public CourseModule addModuleToCourse(Long courseId, String title, String summary, String videoUrl, String duration, String notesUrl) {
+    public CourseModule addModuleToCourse(Long courseId, String title, String summary,
+                                         org.springframework.web.multipart.MultipartFile videoFile, String videoUrl,
+                                         String duration,
+                                         org.springframework.web.multipart.MultipartFile notesFile, String notesUrl) {
         List<CourseModule> existing = moduleRepository.findByCourseIdOrderBySequenceOrderAsc(courseId);
         int nextOrder = existing.isEmpty() ? 1 : existing.get(existing.size() - 1).getSequenceOrder() + 1;
+
+        String finalVideoUrl = storeFileIfPresent(videoFile, videoUrl, "/videos/mvc.mp4");
+        String finalNotesUrl = storeFileIfPresent(notesFile, notesUrl, "Module_Notes.pdf");
 
         CourseModule module = new CourseModule(
                 courseId,
                 title.trim(),
                 summary != null ? summary.trim() : "",
-                videoUrl != null && !videoUrl.trim().isEmpty() ? videoUrl.trim() : "/videos/mvc.mp4",
+                finalVideoUrl,
                 duration != null && !duration.trim().isEmpty() ? duration.trim() : "45 min",
-                notesUrl != null && !notesUrl.trim().isEmpty() ? notesUrl.trim() : "Module_Notes.pdf",
+                finalNotesUrl,
                 nextOrder
         );
         return moduleRepository.save(module);
+    }
+
+    @Transactional
+    public CourseModule updateModule(Long moduleId, String title, String summary,
+                                     org.springframework.web.multipart.MultipartFile videoFile, String videoUrl,
+                                     String duration,
+                                     org.springframework.web.multipart.MultipartFile notesFile, String notesUrl) {
+        CourseModule module = moduleRepository.findById(moduleId)
+                .orElseThrow(() -> new RuntimeException("Module not found: " + moduleId));
+
+        if (title != null && !title.trim().isEmpty()) {
+            module.setModuleTitle(title.trim());
+        }
+        if (summary != null) {
+            module.setSummary(summary.trim());
+        }
+        if (duration != null && !duration.trim().isEmpty()) {
+            module.setDuration(duration.trim());
+        }
+
+        if (videoFile != null && !videoFile.isEmpty()) {
+            module.setVideoUrl(storeFileIfPresent(videoFile, videoUrl, module.getVideoUrl()));
+        } else if (videoUrl != null && !videoUrl.trim().isEmpty()) {
+            module.setVideoUrl(videoUrl.trim());
+        }
+
+        if (notesFile != null && !notesFile.isEmpty()) {
+            module.setNotesUrl(storeFileIfPresent(notesFile, notesUrl, module.getNotesUrl()));
+        } else if (notesUrl != null && !notesUrl.trim().isEmpty()) {
+            module.setNotesUrl(notesUrl.trim());
+        }
+
+        return moduleRepository.save(module);
+    }
+
+    public CourseModule addModuleToCourse(Long courseId, String title, String summary, String videoUrl, String duration, String notesUrl) {
+        return addModuleToCourse(courseId, title, summary, null, videoUrl, duration, null, notesUrl);
+    }
+
+    private String storeFileIfPresent(org.springframework.web.multipart.MultipartFile file, String fallbackUrl, String defaultUrl) {
+        if (file != null && !file.isEmpty()) {
+            try {
+                String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename().replaceAll("\\s+", "_");
+                java.nio.file.Path uploadPath = java.nio.file.Paths.get("uploads");
+                if (!java.nio.file.Files.exists(uploadPath)) {
+                    java.nio.file.Files.createDirectories(uploadPath);
+                }
+                java.nio.file.Path filePath = uploadPath.resolve(fileName);
+                java.nio.file.Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                return "/uploads/" + fileName;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return (fallbackUrl != null && !fallbackUrl.trim().isEmpty()) ? fallbackUrl.trim() : defaultUrl;
     }
 
     @Transactional

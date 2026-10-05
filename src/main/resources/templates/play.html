@@ -25,30 +25,44 @@
             <div class="main-player-col">
                 <!-- Video Container -->
                 <div class="video-frame-container">
-                    <div class="mock-player">
-                        <!-- Play Button Overlay -->
-                        <div class="play-trigger" id="mockPlayBtn">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <!-- Advertisement Player Overlay -->
+                    <div id="advertisementPlayer" class="advertisement-player" style="display: none; position: relative; width: 100%; aspect-ratio: 16 / 9; background: #07182d; overflow: hidden; border-radius: 12px;">
+                        <div class="advertisement-player-label" style="position: absolute; top: 15px; left: 15px; z-index: 10; background: rgba(0,0,0,0.75); color: white; padding: 6px 12px; border-radius: 5px; font-size: 12px; font-weight: 600;">
+                            📢 Sponsored Advertisement
                         </div>
-                        
-                        <!-- Control Bar Overlay (appears on hover) -->
-                        <div class="player-controls">
-                            <div class="progress-bar-container">
-                                <div class="progress-filled"></div>
-                            </div>
-                            <div class="controls-actions">
-                                <div class="controls-left">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="cursor:pointer;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor:pointer;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                                    <span th:text="'15:20 / ' + ${video.duration}">15:20 / 45:12</span>
-                                </div>
-                                <div class="controls-right">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor:pointer;"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor:pointer;"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M21 9H3M21 15H3M12 3v18"/></svg>
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor:pointer;"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-                                </div>
-                            </div>
-                        </div>
+
+                        <!-- Image Advertisement -->
+                        <img id="advertisementImage" alt="Advertisement" style="display: none; width: 100%; height: 100%; object-fit: contain; background: #07182d;">
+
+                        <!-- HTML5 Video Advertisement -->
+                        <video id="advertisementVideo" style="display: none; width: 100%; height: 100%; object-fit: contain; background: #000;" controls></video>
+
+                        <!-- YouTube Video Advertisement -->
+                        <iframe id="advertisementIframe" style="display: none; width: 100%; height: 100%; border: none; background: #000;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+                        <button id="skipAdvertisement" type="button" style="display: none; position: absolute; right: 18px; bottom: 18px; z-index: 10; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.7); border-radius: 6px; background: rgba(0,0,0,0.8); color: white; font-size: 14px; font-weight: 600; cursor: pointer;">
+                            Skip Ad &rarr;
+                        </button>
+                    </div>
+
+                    <!-- Main Video Player -->
+                    <div class="mock-player" id="mainVideoPlayer" style="padding: 0; background: #000; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+                        <!-- YouTube Embed Player for sample videos -->
+                        <iframe th:if="${video.videoUrl != null and #strings.contains(video.videoUrl, 'youtube.com')}" 
+                                th:src="${video.videoUrl}" 
+                                style="width: 100%; height: 100%; border: none; border-radius: 12px;" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                        </iframe>
+
+                        <!-- HTML5 Video Player for uploaded files -->
+                        <video th:unless="${video.videoUrl != null and #strings.contains(video.videoUrl, 'youtube.com')}" 
+                               controls 
+                               style="width: 100%; height: 100%; object-fit: contain; background: #000; border-radius: 12px;" 
+                               th:src="@{${video.videoUrl.startsWith('/') ? video.videoUrl : '/' + video.videoUrl}}">
+                            <source th:src="@{${video.videoUrl.startsWith('/') ? video.videoUrl : '/' + video.videoUrl}}" type="video/mp4">
+                            Your browser does not support HTML5 video playback.
+                        </video>
                     </div>
                 </div>
 
@@ -106,7 +120,6 @@
                         <!-- Tab 2: Study Materials -->
                         <div class="tab-panel" id="tabResources">
                             <div class="resources-list">
-                                <!-- Resource 1 -->
                                 <div class="resource-item">
                                     <div class="resource-info">
                                         <div class="resource-icon">
@@ -119,39 +132,12 @@
                                     </div>
                                     <a href="#" class="btn btn-outline-primary" style="padding: 6px 14px; font-size: 12px;">Download</a>
                                 </div>
-                                <!-- Resource 2 -->
-                                <div class="resource-item">
-                                    <div class="resource-info">
-                                        <div class="resource-icon">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-                                        </div>
-                                        <div>
-                                            <div class="resource-title">Tutorial Sheet & Problems Workbook</div>
-                                            <div class="resource-size">DOCX File &bull; 820 KB</div>
-                                        </div>
-                                    </div>
-                                    <a href="#" class="btn btn-outline-primary" style="padding: 6px 14px; font-size: 12px;">Download</a>
-                                </div>
-                                <!-- Resource 3 -->
-                                <div class="resource-item">
-                                    <div class="resource-info">
-                                        <div class="resource-icon">
-                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M2 10h20"/></svg>
-                                        </div>
-                                        <div>
-                                            <div class="resource-title">Code Repository & Lab Solutions</div>
-                                            <div class="resource-size">ZIP File &bull; 12.8 MB</div>
-                                        </div>
-                                    </div>
-                                    <a href="#" class="btn btn-outline-primary" style="padding: 6px 14px; font-size: 12px;">Download</a>
-                                </div>
                             </div>
                         </div>
                         
                         <!-- Tab 3: Q&A Forum -->
                         <div class="tab-panel" id="tabDiscussion">
                             <div class="forum-thread">
-                                <!-- Question 1 -->
                                 <div class="post-item">
                                     <div class="avatar">AS</div>
                                     <div class="post-content">
@@ -163,30 +149,6 @@
                                             <span class="post-time">1 day ago</span>
                                         </div>
                                         <p class="post-message">In the MVC design, is it standard practice to write input validation in the Model or should it be evaluated by the Controller before parsing?</p>
-                                        
-                                        <!-- Lecturer Reply -->
-                                        <div class="post-item" style="margin-top: 15px; border-bottom: none; padding-bottom: 0;">
-                                            <div class="avatar" style="background-color: var(--color-secondary); color: var(--color-primary);">KJ</div>
-                                            <div class="post-content">
-                                                <div class="post-header">
-                                                    <div>
-                                                        <span class="post-author">Prof. Kanishka Jayasinghe</span>
-                                                        <span class="post-role">Lecturer</span>
-                                                    </div>
-                                                    <span class="post-time">12 hours ago</span>
-                                                </div>
-                                                <p class="post-message">Great question, Ashendra. Input formatting validation (e.g. correct email pattern) is usually handled in the Controller/DTO mapping. Domain validation (e.g. check if email already exists in Database) belongs to the Model/Service layer.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Ask Box -->
-                                <div style="display: flex; gap: 16px; margin-top: 10px;">
-                                    <div class="avatar">AS</div>
-                                    <div style="flex-grow:1; display:flex; flex-direction:column; gap:10px;">
-                                        <textarea class="form-control" style="min-height:80px; font-size:14px;" placeholder="Ask a question about this lecture..."></textarea>
-                                        <button class="btn btn-primary" style="align-self:flex-end; padding:8px 18px; font-size:13px;">Post Question</button>
                                     </div>
                                 </div>
                             </div>
@@ -196,13 +158,10 @@
                         <div class="tab-panel" id="tabNotes">
                             <div class="notes-container">
                                 <div class="notes-input-area">
-                                    <textarea id="noteTextarea" class="notes-textarea" placeholder="Type notes here. Pressing 'Save Note' stamps it with a mock video timeline timestamp..."></textarea>
+                                    <textarea id="noteTextarea" class="notes-textarea" placeholder="Type notes here..."></textarea>
                                     <button id="addNoteBtn" class="btn btn-primary" style="height: auto; align-self: stretch;">Save Note</button>
                                 </div>
-                                
-                                <div class="notes-list" id="notesList">
-                                    <!-- Populated by JS -->
-                                </div>
+                                <div class="notes-list" id="notesList"></div>
                             </div>
                         </div>
                     </div>
@@ -217,7 +176,6 @@
                 </div>
                 
                 <div class="playlist-items">
-                    <!-- Active Video representation -->
                     <div class="playlist-item active">
                         <div class="playlist-thumb">
                             <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background-color:var(--color-primary-light); color:var(--color-secondary); font-size:12px; font-weight:800;">
@@ -230,7 +188,6 @@
                         </div>
                     </div>
 
-                    <!-- Iteration over other videos in course -->
                     <a th:href="@{'/play/' + ${pvideo.id}}" class="playlist-item" th:each="pvideo : ${playlist}">
                         <div class="playlist-thumb">
                             <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background-color:var(--color-primary-dark); color:white; font-size:12px; font-weight:800;">
@@ -249,9 +206,120 @@
 
     <!-- Footer -->
     <div th:replace="~{layout/base :: footer}"></div>
-    
     <!-- Scripts -->
     <div th:replace="~{layout/base :: scripts}"></div>
 
+    <!-- Injected Pre-roll, Mid-roll, and Post-roll Video & Banner Advertisement Player Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            const advertisementPlayer = document.getElementById("advertisementPlayer");
+            const advertisementImage = document.getElementById("advertisementImage");
+            const advertisementVideo = document.getElementById("advertisementVideo");
+            const advertisementIframe = document.getElementById("advertisementIframe");
+            const skipAdvertisement = document.getElementById("skipAdvertisement");
+            const mainVideoPlayer = document.getElementById("mainVideoPlayer");
+
+            try {
+                const response = await fetch("/api/advertisements");
+                if (!response.ok) throw new Error("Could not load advertisements");
+
+                const advertisements = await response.json();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                const validAdvertisements = advertisements.filter(ad => {
+                    const startDate = new Date(ad.startDate + "T00:00:00");
+                    const endDate = new Date(ad.endDate + "T23:59:59");
+                    return (
+                        ad.status === "ACTIVE" &&
+                        startDate <= today &&
+                        endDate >= today &&
+                        ((ad.mediaType === "IMAGE" && ad.imageUrl) ||
+                         (ad.mediaType === "VIDEO" && ad.videoUrl))
+                    );
+                });
+
+                // Function to select active ad by position (PRE_ROLL, MID_ROLL, POST_ROLL)
+                function getAdForPosition(pos) {
+                    const pool = validAdvertisements.filter(ad => (ad.playbackPosition || "PRE_ROLL") === pos);
+                    if (pool.length > 0) {
+                        return pool[Math.floor(Math.random() * pool.length)];
+                    }
+                    // Fallback to any valid ad if specific timing pool is empty
+                    return validAdvertisements.length > 0 ? validAdvertisements[0] : null;
+                }
+
+                // 1. Trigger PRE_ROLL Ad (Starts immediately before video)
+                const preRollAd = getAdForPosition("PRE_ROLL");
+                if (preRollAd) {
+                    playAdvertisement(preRollAd, () => {
+                        mainVideoPlayer.style.display = "block";
+                    });
+                } else {
+                    mainVideoPlayer.style.display = "block";
+                }
+
+                function playAdvertisement(ad, onComplete) {
+                    mainVideoPlayer.style.display = "none";
+                    advertisementPlayer.style.display = "block";
+
+                    if (ad.mediaType === "IMAGE" && ad.imageUrl) {
+                        advertisementImage.src = ad.imageUrl;
+                        advertisementImage.style.display = "block";
+                        skipAdvertisement.style.display = "block";
+                    } else if (ad.mediaType === "VIDEO" && ad.videoUrl) {
+                        const url = ad.videoUrl;
+                        if (url.includes("youtube.com") || url.includes("youtu.be")) {
+                            // YouTube ad video url formatting
+                            let embedUrl = url;
+                            if (!url.includes("/embed/")) {
+                                const videoIdMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([\w-]+)/);
+                                if (videoIdMatch && videoIdMatch[1]) {
+                                    embedUrl = `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=1&mute=1`;
+                                }
+                            } else if (!url.includes("autoplay=1")) {
+                                embedUrl += (embedUrl.includes("?") ? "&" : "?") + "autoplay=1&mute=1";
+                            }
+                            advertisementIframe.src = embedUrl;
+                            advertisementIframe.style.display = "block";
+                        } else {
+                            advertisementVideo.src = url.startsWith('/') ? url : '/' + url;
+                            advertisementVideo.style.display = "block";
+                            advertisementVideo.muted = true;
+                            advertisementVideo.autoplay = true;
+
+                            advertisementVideo.play().catch(err => console.log("Ad video autoplay blocked:", err));
+                            advertisementVideo.onended = () => finishAd(onComplete);
+                        }
+                        skipAdvertisement.style.display = "block";
+                    } else {
+                        finishAd(onComplete);
+                    }
+
+                    skipAdvertisement.onclick = () => finishAd(onComplete);
+                }
+
+                function finishAd(onComplete) {
+                    if (advertisementVideo) {
+                        advertisementVideo.pause();
+                        advertisementVideo.src = "";
+                    }
+                    if (advertisementIframe) {
+                        advertisementIframe.src = "";
+                    }
+                    advertisementPlayer.style.display = "none";
+                    advertisementImage.style.display = "none";
+                    advertisementVideo.style.display = "none";
+                    advertisementIframe.style.display = "none";
+                    skipAdvertisement.style.display = "none";
+                    if (onComplete) onComplete();
+                }
+
+            } catch (error) {
+                console.error("Advertisement player error:", error);
+                mainVideoPlayer.style.display = "block";
+            }
+        });
+    </script>
 </body>
 </html>

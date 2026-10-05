@@ -22,33 +22,25 @@ public class UserService {
 
     @Transactional
     public User register(String fullName, String email, String rawPassword, Role role) {
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmail(email) || mainUserRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("An account with this email already exists");
         }
         User user = User.builder()
-                .fullName(fullName)
+                .fullName(fullName != null && !fullName.trim().isEmpty() ? fullName : email)
                 .email(email)
                 .password(passwordEncoder.encode(rawPassword))
-                .role(role)
+                .role(role != null ? role : Role.STUDENT)
                 .createdAt(LocalDateTime.now())
                 .build();
         User savedUser = userRepository.save(user);
 
-        try {
-            if (!mainUserRepository.existsByEmail(email)) {
-                String username = email.contains("@") ? email.split("@")[0] : email;
-                UserRole mainRole = (role == Role.ADMIN) ? UserRole.ADMIN :
-                        (role == Role.TEACHER) ? UserRole.TEACHER : UserRole.STUDENT;
+        UserRole mainRole = (role == Role.ADMIN) ? UserRole.ADMIN :
+                (role == Role.TEACHER) ? UserRole.TEACHER : UserRole.STUDENT;
 
-                com.eduframepackage.eduframe.model.User mainUser = new com.eduframepackage.eduframe.model.User(
-                        username, email, savedUser.getPassword(), fullName, mainRole
-                );
-                mainUserRepository.save(mainUser);
-            }
-        } catch (Exception e) {
-            // Log warning if main user sync has any constraint variation
-            System.err.println("Main user sync note: " + e.getMessage());
-        }
+        com.eduframepackage.eduframe.model.User mainUser = new com.eduframepackage.eduframe.model.User(
+                email, savedUser.getPassword(), fullName, mainRole
+        );
+        mainUserRepository.save(mainUser);
 
         return savedUser;
     }
@@ -89,11 +81,12 @@ public class UserService {
         try {
             mainUserRepository.findByEmail(currentEmail).ifPresent(mainUser -> {
                 if (fullName != null && !fullName.trim().isEmpty()) {
-                    mainUser.setFullName(fullName);
+                    String[] parts = fullName.trim().split(" ", 2);
+                    mainUser.setFirstName(parts[0]);
+                    mainUser.setLastName(parts.length > 1 ? parts[1] : "");
                 }
                 if (newEmail != null && !newEmail.equalsIgnoreCase(currentEmail)) {
                     mainUser.setEmail(newEmail);
-                    mainUser.setUsername(newEmail.contains("@") ? newEmail.split("@")[0] : newEmail);
                 }
                 if (newPassword != null && !newPassword.trim().isEmpty()) {
                     mainUser.setPassword(updatedUser.getPassword());
@@ -106,6 +99,104 @@ public class UserService {
 
         return updatedUser;
     }
+
+    public java.util.List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+    }
+
+    @Transactional
+    public User updateRole(Long userId, Role newRole) {
+        User user = getUserById(userId);
+        user.setRole(newRole);
+        User updated = userRepository.save(user);
+
+        try {
+            mainUserRepository.findByEmail(user.getEmail()).ifPresent(mainUser -> {
+                UserRole mainRole = (newRole == Role.ADMIN) ? UserRole.ADMIN :
+                        (newRole == Role.TEACHER) ? UserRole.TEACHER : UserRole.STUDENT;
+                mainUser.setRole(mainRole);
+                mainUserRepository.save(mainUser);
+            });
+        } catch (Exception e) {
+            System.err.println("Main user role update sync note: " + e.getMessage());
+        }
+
+        return updated;
+    }
+
+    @Transactional
+    public User adminUpdateUser(Long userId, String fullName, String newEmail, String newPassword, Role newRole) {
+        User user = getUserById(userId);
+        String oldEmail = user.getEmail();
+
+        if (newEmail != null && !newEmail.equalsIgnoreCase(oldEmail)) {
+            if (userRepository.existsByEmail(newEmail) || mainUserRepository.existsByEmail(newEmail)) {
+                throw new IllegalArgumentException("The email address is already in use by another account.");
+            }
+            user.setEmail(newEmail);
+        }
+
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            user.setFullName(fullName);
+        }
+
+        if (newRole != null) {
+            user.setRole(newRole);
+        }
+
+        if (newPassword != null && !newPassword.trim().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(newPassword));
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        try {
+            mainUserRepository.findByEmail(oldEmail).ifPresent(mainUser -> {
+                if (fullName != null && !fullName.trim().isEmpty()) {
+                    String[] parts = fullName.trim().split(" ", 2);
+                    mainUser.setFirstName(parts[0]);
+                    mainUser.setLastName(parts.length > 1 ? parts[1] : "");
+                }
+                if (newEmail != null && !newEmail.equalsIgnoreCase(oldEmail)) {
+                    mainUser.setEmail(newEmail);
+                }
+                if (newRole != null) {
+                    UserRole mainRole = (newRole == Role.ADMIN) ? UserRole.ADMIN :
+                            (newRole == Role.TEACHER) ? UserRole.TEACHER : UserRole.STUDENT;
+                    mainUser.setRole(mainRole);
+                }
+                if (newPassword != null && !newPassword.trim().isEmpty()) {
+                    mainUser.setPassword(updatedUser.getPassword());
+                }
+                mainUserRepository.save(mainUser);
+            });
+        } catch (Exception e) {
+            System.err.println("Main user sync edit note: " + e.getMessage());
+        }
+
+        return updatedUser;
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        User user = getUserById(userId);
+        String email = user.getEmail();
+        userRepository.deleteById(userId);
+
+        try {
+            mainUserRepository.findByEmail(email).ifPresent(mainUser -> {
+                mainUserRepository.delete(mainUser);
+            });
+        } catch (Exception e) {
+            System.err.println("Main user delete sync note: " + e.getMessage());
+        }
+    }
 }
+
 
 

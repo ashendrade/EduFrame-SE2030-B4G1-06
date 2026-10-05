@@ -87,20 +87,33 @@
                 <p th:text="${m.summary}" style="color: var(--color-text-muted); font-size: 14.5px; line-height: 1.6; margin-bottom: 18px;"></p>
 
                 <!-- Video Preview / Player -->
-                <div style="background-color: var(--color-primary-dark); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 16px;">
-                    <video controls style="width: 100%; max-height: 360px; display: block;">
-                        <source th:src="@{${m.videoUrl}}" type="video/mp4">
+                <div style="background-color: var(--color-primary-dark); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 16px; aspect-ratio: 16 / 9; width: 100%;">
+                    <!-- YouTube Embed Player for sample modules -->
+                    <iframe th:if="${m.videoUrl != null and #strings.contains(m.videoUrl, 'youtube.com')}" 
+                            th:src="${m.videoUrl}" 
+                            style="width: 100%; height: 100%; border: none;" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
+
+                    <!-- HTML5 Video Player for uploaded files -->
+                    <video th:unless="${m.videoUrl != null and #strings.contains(m.videoUrl, 'youtube.com')}" 
+                           controls 
+                           style="width: 100%; height: 100%; object-fit: contain; background: #000;" 
+                           th:src="@{${m.videoUrl != null && !#strings.isEmpty(m.videoUrl) ? (m.videoUrl.startsWith('/') ? m.videoUrl : '/' + m.videoUrl) : '/videos/mvc.mp4'}}">
+                        <source th:src="@{${m.videoUrl != null && !#strings.isEmpty(m.videoUrl) ? (m.videoUrl.startsWith('/') ? m.videoUrl : '/' + m.videoUrl) : '/videos/mvc.mp4'}}" type="video/mp4">
                         Your browser does not support HTML5 video playback.
                     </video>
                 </div>
 
                 <!-- Download Sample Lecture Notes -->
                 <div style="display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; padding: 12px 18px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-secondary);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        <span style="font-size: 13.5px; font-weight: 600; color: var(--color-primary);" th:text="${m.notesUrl}">Lecture_Notes.pdf</span>
+                    <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65%;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-secondary); flex-shrink: 0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <span style="font-size: 13.5px; font-weight: 600; color: var(--color-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                              th:text="${m.notesUrl != null ? (m.notesUrl.startsWith('/uploads/') ? m.notesUrl.substring(m.notesUrl.indexOf('_') + 1) : m.notesUrl) : 'Lecture_Notes.pdf'}">Lecture_Notes.pdf</span>
                     </div>
-                    <a th:href="@{${m.videoUrl}}" download class="btn btn-secondary btn-sm" style="font-size: 12.5px;">Download Notes (PDF)</a>
+                    <a th:href="@{${m.notesUrl.startsWith('/') ? m.notesUrl : '/' + m.notesUrl}}" download class="btn btn-secondary btn-sm" style="font-size: 12.5px; flex-shrink: 0;">Download Notes (PDF)</a>
                 </div>
             </div>
         </div>
@@ -151,5 +164,7 @@
     </div>
 </div>
 
+<div th:replace="~{layout/base :: footer}"></div>
+<div th:replace="~{layout/base :: scripts}"></div>
 </body>
 </html>

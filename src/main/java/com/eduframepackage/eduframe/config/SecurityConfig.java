@@ -54,10 +54,14 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authorize -> authorize
                 // Publicly accessible pages & static assets
-                .requestMatchers("/", "/browse", "/play", "/play/**", "/login", "/register", "/events", "/css/**", "/js/**", "/images/**", "/img/**").permitAll()
+                .requestMatchers("/", "/browse", "/play", "/play/**", "/login", "/register", "/events", "/announcements", "/api/announcements/**", "/css/**", "/js/**", "/images/**", "/img/**", "/uploads/**", "/videos/**").permitAll()
                 
-                // Teacher / Instructor secured endpoints
-                .requestMatchers("/teacher/**", "/upload", "/upload/**").hasAnyRole("TEACHER", "ADMIN")
+                // Admin endpoints & user management
+                .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+                
+                // Teacher / Instructor & Admin secured endpoints
+                .requestMatchers("/teacher/**", "/upload", "/upload/**", "/advertisements").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers("/api/advertisements/**").permitAll()
                 
                 // Student secured endpoints
                 .requestMatchers("/student/**").hasAnyRole("STUDENT", "ADMIN")

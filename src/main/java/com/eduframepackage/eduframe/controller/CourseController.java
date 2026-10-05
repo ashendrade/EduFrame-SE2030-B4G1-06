@@ -126,13 +126,30 @@ public class CourseController {
     public String addModule(@PathVariable("id") Long id,
                             @RequestParam("moduleTitle") String moduleTitle,
                             @RequestParam(value = "summary", required = false) String summary,
+                            @RequestParam(value = "videoFile", required = false) org.springframework.web.multipart.MultipartFile videoFile,
                             @RequestParam(value = "videoUrl", required = false) String videoUrl,
                             @RequestParam(value = "duration", required = false) String duration,
+                            @RequestParam(value = "notesFile", required = false) org.springframework.web.multipart.MultipartFile notesFile,
                             @RequestParam(value = "notesUrl", required = false) String notesUrl,
                             RedirectAttributes redirectAttributes) {
-        courseService.addModuleToCourse(id, moduleTitle, summary, videoUrl, duration, notesUrl);
+        courseService.addModuleToCourse(id, moduleTitle, summary, videoFile, videoUrl, duration, notesFile, notesUrl);
         redirectAttributes.addFlashAttribute("successMessage", "New course module added successfully!");
         return "redirect:/teacher/courses/" + id + "/edit";
+    }
+
+    @PostMapping("/teacher/modules/{moduleId}/update")
+    public String updateModule(@PathVariable("moduleId") Long moduleId,
+                               @RequestParam("moduleTitle") String moduleTitle,
+                               @RequestParam(value = "summary", required = false) String summary,
+                               @RequestParam(value = "videoFile", required = false) org.springframework.web.multipart.MultipartFile videoFile,
+                               @RequestParam(value = "videoUrl", required = false) String videoUrl,
+                               @RequestParam(value = "duration", required = false) String duration,
+                               @RequestParam(value = "notesFile", required = false) org.springframework.web.multipart.MultipartFile notesFile,
+                               @RequestParam(value = "notesUrl", required = false) String notesUrl,
+                               RedirectAttributes redirectAttributes) {
+        CourseModule module = courseService.updateModule(moduleId, moduleTitle, summary, videoFile, videoUrl, duration, notesFile, notesUrl);
+        redirectAttributes.addFlashAttribute("successMessage", "Module '" + module.getModuleTitle() + "' updated successfully!");
+        return "redirect:/teacher/courses/" + module.getCourseId() + "/edit";
     }
 
     @PostMapping("/teacher/modules/{moduleId}/move-up")

@@ -46,13 +46,9 @@ public class DashboardApiController {
     public ResponseEntity<DashboardStatsDTO> getDashboardStats() {
         long userCount = 0;
         if (userRepository != null) {
-            userCount += userRepository.count();
-        }
-        if (quizUserRepository != null) {
-            userCount += quizUserRepository.count();
-        }
-        if (userCount == 0) {
-            userCount = 1240; // Default baseline if database table empty
+            userCount = userRepository.count();
+        } else if (quizUserRepository != null) {
+            userCount = quizUserRepository.count();
         }
 
         long announcementsCount = announcementRepository.findAll().stream()
