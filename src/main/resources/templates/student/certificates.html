@@ -2,36 +2,88 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>My Certificates - EduFrame</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Certificates - EduFrame SLIIT</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <div th:replace="~{layout/base :: header('certificates')}"></div>
 
-<div class="page">
-    <div class="page-header">
-        <div>
-            <h1>My Certificates</h1>
-        </div>
-    </div>
+<div class="container" style="max-width: 1280px; margin: 0 auto; padding: 0 24px 60px;">
 
-    <div th:if="${#lists.isEmpty(certificates)}" class="card empty-state">
-        <p style="margin:0 auto;">No certificates yet &mdash; pass a quiz to earn your first one.</p>
-    </div>
-
-    <div class="list-card" th:unless="${#lists.isEmpty(certificates)}">
-        <div class="cert-row" th:each="c : ${certificates}">
-            <div class="cert-icon">PDF</div>
-            <div style="flex:1;">
-                <div class="list-row-title" th:text="${c.quiz.title}"></div>
-                <div class="list-row-meta" th:text="'Certificate ID: ' + ${c.certificateCode}"></div>
+    <!-- Certificates Hero Header -->
+    <div class="student-hero" style="margin-bottom: 36px; margin-top: 10px;">
+        <div class="student-hero-content">
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span class="badge" style="background: rgba(242, 169, 0, 0.2); color: var(--color-secondary); font-weight: 700; padding: 4px 12px; border-radius: 20px;">ACADEMIC CREDENTIALS</span>
+                </div>
+                <h1 class="student-welcome-title">My Verified Certificates 📜</h1>
+                <p class="student-welcome-sub">View and download your official SLIIT EduFrame completion certificates issued upon passing course assessments.</p>
             </div>
-            <a th:href="@{/certificates/{id}/download(id=${c.id})}" target="_blank" class="btn btn-primary btn-sm">Download PDF</a>
+            <div class="student-stats-row">
+                <div class="student-stat-pill">
+                    <div class="student-stat-icon">🎓</div>
+                    <div>
+                        <div class="student-stat-val" th:text="${certificates != null ? #lists.size(certificates) : 0}">0</div>
+                        <div class="student-stat-lbl">Earned Credentials</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Empty State -->
+    <div th:if="${#lists.isEmpty(certificates)}" class="student-empty-state">
+        <div class="student-empty-icon">🎖️</div>
+        <h3 class="student-empty-title">No Certificates Earned Yet</h3>
+        <p class="student-empty-text">Complete and pass open quiz assessments to earn your official SLIIT verified completion certificates.</p>
+        <a th:href="@{/student/dashboard}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;">
+            <span>Go to Student Dashboard</span> &rarr;
+        </a>
+    </div>
+
+    <!-- Certificates Grid -->
+    <div class="cert-grid" th:unless="${#lists.isEmpty(certificates)}">
+        <div class="cert-card" th:each="c : ${certificates}">
+            <div class="cert-card-header">
+                <div class="cert-badge-ribbon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                    Official Credential
+                </div>
+                <span class="cert-score-tag" th:if="${c.attempt != null && c.attempt.scorePercentage != null}" th:text="${c.attempt.scorePercentage} + '% Score'">100% Score</span>
+                <span class="cert-score-tag" th:unless="${c.attempt != null && c.attempt.scorePercentage != null}">Passed</span>
+            </div>
+
+            <div class="cert-card-body">
+                <div class="cert-seal-icon">🏆</div>
+                <div class="cert-info">
+                    <h3 class="cert-title" th:text="${c.quiz != null ? c.quiz.title : 'Course Assessment'}">Quiz Title</h3>
+                    <p class="cert-student-name" th:text="'Awarded to: ' + ${c.student != null ? c.student.fullName : 'Student'}">Student Name</p>
+                    
+                    <div class="cert-meta-row">
+                        <div class="cert-code-pill">
+                            <span style="color: var(--color-text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase;">ID:</span>
+                            <strong th:text="${c.certificateCode != null ? c.certificateCode : 'EDF-CERT'}" style="color: var(--color-primary); font-family: monospace;">EDF-XXXXX</strong>
+                        </div>
+                        <div class="cert-date-text" th:if="${c.issuedAt != null}" th:text="'Issued: ' + ${#temporals.format(c.issuedAt, 'dd MMM yyyy')}">Issued Date</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cert-card-footer">
+                <a th:href="@{/certificates/{id}/download(id=${c.id})}" target="_blank" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Download Official PDF</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
 </div>
+
 <div th:replace="~{layout/base :: footer}"></div>
 <div th:replace="~{layout/base :: scripts}"></div>
 </body>
