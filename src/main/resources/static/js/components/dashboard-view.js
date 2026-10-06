@@ -273,6 +273,9 @@ function TeacherDashboardView({ announcements, events, loading, refreshData, sta
                         </p>
                     </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
+                        <a href="/staff/helpdesk" className="btn btn-primary" style={{ padding: '7px 16px', fontSize: '0.85rem', background: '#8b5cf6', borderColor: '#7c3aed' }}>
+                            🎧 Help Desk Console
+                        </a>
                         <a href="/teacher/quizzes/new" className="btn btn-primary" style={{ padding: '7px 16px', fontSize: '0.85rem' }}>
                             + New Quiz
                         </a>
@@ -347,6 +350,25 @@ function AdminDashboardView({ announcements, events, loading, refreshData, stats
 
             {/* Admin User Management Abilities Section */}
             <UserManagementConsole />
+
+            {/* Help Desk & Support Ticket Management (Staff/Admin Link) */}
+            <div style={{ background: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)', border: '1px solid var(--color-border)', marginBottom: '30px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                        <h3 style={{ margin: 0, color: 'var(--color-primary)', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            🎫 Help Desk &amp; Student Support Ticket System
+                        </h3>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                            Review, respond to, update status, and resolve support tickets submitted by students and teachers.
+                        </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <a href="/staff/helpdesk" className="btn btn-primary" style={{ padding: '8px 18px', fontSize: '0.85rem', background: '#8b5cf6', borderColor: '#7c3aed', color: 'white', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>🎧 Open Support Help Desk Console &rarr;</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
             {/* Joined Admin Master Quiz Controls */}
             <div style={{ background: 'white', padding: '24px', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)', border: '1px solid var(--color-border)', marginBottom: '30px' }}>

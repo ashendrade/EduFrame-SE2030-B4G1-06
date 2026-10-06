@@ -60,7 +60,8 @@ public class SecurityConfig {
                 .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                 
                 // Teacher / Instructor & Admin secured endpoints
-                .requestMatchers("/teacher/**", "/upload", "/upload/**", "/advertisements").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers("/teacher/**", "/upload", "/upload/**", "/advertisements", "/videos/upload", "/videos/delete/**").hasAnyRole("TEACHER", "ADMIN")
+                .requestMatchers("/api/videos/**").permitAll()
                 .requestMatchers("/api/advertisements/**").permitAll()
                 
                 // Student secured endpoints

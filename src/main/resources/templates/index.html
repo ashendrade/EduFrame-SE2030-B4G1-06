@@ -17,7 +17,7 @@
                     Browse All Lectures
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left: 6px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
-                <a th:href="@{/upload}" class="btn btn-outline-light" style="border: 1px solid rgba(255, 255, 255, 0.4); color: white; padding: 14px 24px; font-size: 15px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px);">Lecturer Upload Workspace</a>
+                <a th:href="@{/upload}" sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" class="btn btn-outline-light" style="border: 1px solid rgba(255, 255, 255, 0.4); color: white; padding: 14px 24px; font-size: 15px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(8px);">Lecturer Upload Workspace</a>
             </div>
         </div>
     </section>

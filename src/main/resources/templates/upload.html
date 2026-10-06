@@ -10,8 +10,8 @@
         <!-- Dashboard Header -->
         <div style="margin-top: 30px; border-bottom: 1px solid var(--color-border); padding-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
             <div>
-                <h1 style="font-size: 32px;">Lecturer Workspace</h1>
-                <p class="video-desc" style="margin-top: 4px;">Upload new instructional videos and manage course analytics</p>
+                <h1 style="font-size: 32px;">Instructor Video &amp; Content Management</h1>
+                <p class="video-desc" style="margin-top: 4px;">Upload instructional videos for guests on the home page and manage published content</p>
             </div>
             
             <div style="background-color: var(--color-bg-card); padding: 8px 16px; border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; align-items: center; gap: 8px;">
@@ -20,13 +20,134 @@
             </div>
         </div>
 
-        <div class="upload-grid">
-            <!-- Left Upload Console -->
+        <!-- Alert notifications -->
+        <div th:if="${successMessage}" style="margin-top: 20px; padding: 14px 20px; background-color: rgba(16, 185, 129, 0.1); border: 1px solid var(--color-success); border-radius: var(--radius-md); color: var(--color-success); font-weight: 600; font-size: 14px;">
+            <span th:text="${successMessage}">Operation successful!</span>
+        </div>
+        <div th:if="${errorMessage}" style="margin-top: 20px; padding: 14px 20px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid var(--color-accent); border-radius: var(--radius-md); color: var(--color-accent); font-weight: 600; font-size: 14px;">
+            <span th:text="${errorMessage}">Operation failed.</span>
+        </div>
+
+        <div class="upload-grid" style="margin-top: 24px;">
+            <!-- Left Console -->
             <main>
-                <div class="card animate-fade">
+                <!-- 1. Guest & Home Page Video Upload Console -->
+                <div class="card animate-fade" style="margin-bottom: 30px; border-top: 4px solid var(--color-secondary);">
                     <h2 style="font-size: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; display: flex; align-items: center; gap: 10px;">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-                        Lecturer Panel - Publish New Course &amp; Content
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                        Upload Video for Guest &amp; Home Page Access
+                    </h2>
+                    
+                    <form th:action="@{/videos/upload}" method="post" enctype="multipart/form-data">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label for="videoTitle">Video Title</label>
+                                <input type="text" id="videoTitle" name="title" class="form-control" placeholder="e.g. SE2030: Introduction to Microservices" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="videoCategory">Category / Faculty</label>
+                                <select id="videoCategory" name="category" class="form-control" style="cursor: pointer;">
+                                    <option value="Computing">Computing</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Business">Business</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label for="videoLecturer">Lecturer Name</label>
+                                <input type="text" id="videoLecturer" name="lecturer" class="form-control" th:value="${lecturerName}" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="videoDuration">Duration (mm:ss or hr:mm)</label>
+                                <input type="text" id="videoDuration" name="duration" class="form-control" placeholder="e.g. 45:30" value="45:00">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="videoDescription">Video Summary &amp; Guest Overview</label>
+                            <textarea id="videoDescription" name="description" class="form-control" rows="3" placeholder="Provide a detailed summary of the lecture for guest viewers and students." required></textarea>
+                        </div>
+
+                        <div style="background-color: var(--color-bg); padding: 20px; border-radius: var(--radius-md); border: 1px dashed var(--color-border); margin-bottom: 24px;">
+                            <h4 style="font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-primary); margin-bottom: 12px;">Video File or Stream Source</h4>
+                            
+                            <div class="form-group" style="margin-bottom: 12px;">
+                                <label for="videoFile">Upload Video File (MP4, WEBM, MOV)</label>
+                                <input type="file" id="videoFile" name="file" class="form-control" accept="video/*" style="padding: 8px;">
+                            </div>
+
+                            <div style="text-align: center; margin: 10px 0; color: var(--color-text-muted); font-weight: 600; font-size: 12px;">- OR -</div>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="videoUrl">Video Stream / Embed URL (YouTube or CDN)</label>
+                                <input type="url" id="videoUrl" name="videoUrl" class="form-control" placeholder="e.g. https://www.youtube.com/embed/pTb0U4xW6h8">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 16px;">
+                            <button type="submit" class="btn btn-primary" style="padding: 12px 28px; background: var(--color-secondary); color: var(--color-primary-dark); font-weight: 800; border: none;">
+                                Publish Guest Video to Home Page
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 2. Guest Video Management List -->
+                <div class="card animate-fade">
+                    <h2 style="font-size: 20px; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <span style="display: flex; align-items: center; gap: 10px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l5 5-5 5"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/></svg>
+                            Managed Guest &amp; Home Page Videos
+                        </span>
+                        <span style="font-size: 13px; font-weight: 600; color: var(--color-text-muted);" th:text="${guestVideos != null ? guestVideos.size() : 0} + ' Public Videos'">0 Public Videos</span>
+                    </h2>
+
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-bg);">
+                                    <th style="padding: 12px 14px;">Title &amp; Category</th>
+                                    <th style="padding: 12px 14px;">Lecturer</th>
+                                    <th style="padding: 12px 14px;">Duration</th>
+                                    <th style="padding: 12px 14px;">Upload Date</th>
+                                    <th style="padding: 12px 14px; text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="vid : ${guestVideos}" style="border-bottom: 1px solid var(--color-border);">
+                                    <td style="padding: 12px 14px;">
+                                        <div style="font-weight: 700; color: var(--color-primary);" th:text="${vid.title}">Video Title</div>
+                                        <span style="font-size: 11px; background-color: rgba(12,35,64,0.08); padding: 2px 8px; border-radius: var(--radius-sm); font-weight: 600;" th:text="${vid.category}">Computing</span>
+                                    </td>
+                                    <td style="padding: 12px 14px;" th:text="${vid.lecturer}">Prof. Kanishka</td>
+                                    <td style="padding: 12px 14px;" th:text="${vid.duration}">45:12</td>
+                                    <td style="padding: 12px 14px;" th:text="${vid.uploadDate}">2026-08-10</td>
+                                    <td style="padding: 12px 14px; text-align: right; white-space: nowrap;">
+                                        <a th:href="@{'/play/' + ${vid.id}}" class="btn btn-sm btn-outline-primary" style="padding: 4px 10px; font-size: 12px; margin-right: 6px;" target="_blank">Preview</a>
+                                        <form th:action="@{'/videos/delete/' + ${vid.id}}" method="post" style="display: inline-block;">
+                                            <button type="submit" class="btn btn-sm" style="padding: 4px 10px; font-size: 12px; background-color: rgba(239, 68, 68, 0.1); color: var(--color-accent); border: 1px solid var(--color-accent);" onclick="return confirm('Are you sure you want to remove this guest video?');">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <tr th:if="${guestVideos == null || guestVideos.isEmpty()}">
+                                    <td colspan="5" style="padding: 24px; text-align: center; color: var(--color-text-muted);">
+                                        No guest videos published yet.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3. Publish New Course Section -->
+                <div class="card animate-fade" style="margin-top: 30px;">
+                    <h2 style="font-size: 20px; margin-bottom: 24px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                        Lecturer Panel - Publish New Course Syllabus
                     </h2>
                     
                     <form th:action="@{/teacher/courses/create}" method="post" id="uploadForm">
@@ -71,24 +192,9 @@
                             <textarea id="description" name="description" class="form-control" rows="3" placeholder="Provide a detailed description of the course curriculum, learning outcomes, and references." required></textarea>
                         </div>
 
-                        <!-- Sample Unit 1 Module Content -->
-                        <div style="background-color: var(--color-bg); padding: 20px; border-radius: var(--radius-md); border: 1px dashed var(--color-border); margin-bottom: 24px;">
-                            <h4 style="font-family: var(--font-heading); font-size: 16px; font-weight: 700; color: var(--color-primary); margin-bottom: 12px;">Unit 1: Sample Lecture Content</h4>
-                            
-                            <div class="form-group">
-                                <label for="moduleTitle">Module Title</label>
-                                <input type="text" id="moduleTitle" name="moduleTitle" class="form-control" placeholder="e.g. Module 1: Introduction to Architecture & Microservices" value="Module 1: Introduction to Architecture & Design Patterns">
-                            </div>
-
-                            <div class="form-group" style="margin-bottom: 0;">
-                                <label for="moduleSummary">Module Lecture Summary</label>
-                                <textarea id="moduleSummary" name="moduleSummary" class="form-control" rows="2" placeholder="Summary of sample video lecture and key takeaways.">A comprehensive lecture explaining MVC architecture and thread-safe design patterns with concrete Java examples.</textarea>
-                            </div>
-                        </div>
-
                         <div style="display: flex; justify-content: flex-end; gap: 16px; margin-top: 24px;">
                             <a th:href="@{/browse}" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary" style="padding: 12px 28px;">Publish Course to Portal</button>
+                            <button type="submit" class="btn btn-primary" style="padding: 12px 28px;">Publish Course to Catalog</button>
                         </div>
                     </form>
                 </div>
@@ -106,12 +212,12 @@
                     
                     <div class="analytics-grid">
                         <div class="analytic-card">
-                            <div class="analytic-label">Videos</div>
-                            <div class="analytic-val">6</div>
+                            <div class="analytic-label">Guest Videos</div>
+                            <div class="analytic-val" th:text="${guestVideos != null ? guestVideos.size() : 0}">6</div>
                         </div>
                         <div class="analytic-card">
                             <div class="analytic-label">Views</div>
-                            <div class="analytic-val">835</div>
+                            <div class="analytic-val">1,240</div>
                         </div>
                     </div>
                     
@@ -127,25 +233,13 @@
                     </div>
                 </div>
 
-                <!-- Your Uploads list -->
+                <!-- Navigation link to home page -->
                 <div class="card" style="padding: 24px;">
-                    <h3 style="font-size: 16px; margin-bottom: 16px; border-bottom: 2px solid var(--color-border); padding-bottom: 8px; text-transform: uppercase;">Recently Published</h3>
-                    <ul style="display: flex; flex-direction: column; gap: 14px;">
-                        <li style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
-                            <div>
-                                <div style="font-weight: 600; color: var(--color-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">Design Patterns - Singleton</div>
-                                <div style="color: var(--color-text-muted); font-size: 11px;">Uploaded 1 day ago</div>
-                            </div>
-                            <span style="background-color: rgba(16, 185, 129, 0.1); color: var(--color-success); padding: 2px 8px; border-radius: var(--radius-sm); font-size: 10px; font-weight: 700;">ACTIVE</span>
-                        </li>
-                        <li style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
-                            <div>
-                                <div style="font-weight: 600; color: var(--color-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">Introduction to MVC Architecture</div>
-                                <div style="color: var(--color-text-muted); font-size: 11px;">Uploaded 3 days ago</div>
-                            </div>
-                            <span style="background-color: rgba(16, 185, 129, 0.1); color: var(--color-success); padding: 2px 8px; border-radius: var(--radius-sm); font-size: 10px; font-weight: 700;">ACTIVE</span>
-                        </li>
-                    </ul>
+                    <h3 style="font-size: 16px; margin-bottom: 12px; font-weight: 700;">Home Page Guest Portal</h3>
+                    <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 16px;">Preview how guest users see your uploaded videos on the main home page.</p>
+                    <a th:href="@{/}" class="btn btn-outline-primary btn-sm" style="width: 100%; text-align: center; justify-content: center; display: flex;">
+                        View Home Page Guest View
+                    </a>
                 </div>
             </aside>
         </div>

@@ -58,8 +58,18 @@
                 </div>
 
                 <!-- Instructor Dashboard (Restricted to Teachers and Admins) -->
-                <div class="nav-item" sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" th:classappend="${activeTab == 'teacher' || activeTab == 'upload' ? 'active' : ''}">
+                <div class="nav-item" sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" th:classappend="${activeTab == 'teacher' ? 'active' : ''}">
                     <a th:href="@{/teacher/dashboard}" class="nav-link">Instructor Dashboard</a>
+                </div>
+
+                <!-- Instructor Video Management -->
+                <div class="nav-item" sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" th:classappend="${activeTab == 'upload' ? 'active' : ''}">
+                    <a th:href="@{/upload}" class="nav-link">Video Management</a>
+                </div>
+
+                <!-- Ticket Resolution Console (Restricted to Teachers and Admins) -->
+                <div class="nav-item" sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" th:classappend="${activeTab == 'helpdesk' ? 'active' : ''}">
+                    <a th:href="@{/staff/helpdesk}" class="nav-link" style="color: var(--color-secondary); font-weight: 700;">Ticket Console</a>
                 </div>
             </nav>
             
@@ -145,6 +155,13 @@
                                 <a th:href="@{/dashboard}">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                                     Admin Dashboard
+                                </a>
+                            </li>
+                            <!-- Staff Help Desk & Ticket Management -->
+                            <li class="dropdown-item" sec:authorize="hasAnyRole('ADMIN', 'TEACHER')">
+                                <a th:href="@{/staff/helpdesk}">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: text-bottom;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                    Support Ticket Console
                                 </a>
                             </li>
                             <!-- Advertisement Management -->

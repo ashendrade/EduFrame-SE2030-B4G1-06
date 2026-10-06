@@ -92,10 +92,23 @@ public class AnnouncementService {
         }
     }
 
+    /**
+     * Creates a new announcement or event post with default ADMIN authorization.
+     *
+     * @param dto Announcement payload details.
+     * @return Created AnnouncementDTO.
+     */
     public AnnouncementDTO createPost(AnnouncementDTO dto) {
         return createPost(dto, UserRole.ADMIN);
     }
 
+    /**
+     * Creates a new announcement or event post checking user role permissions and schedule conflicts.
+     *
+     * @param dto Announcement payload details.
+     * @param role Role of the user requesting creation.
+     * @return Created AnnouncementDTO.
+     */
     public AnnouncementDTO createPost(AnnouncementDTO dto, UserRole role) {
         if (role == null) role = UserRole.ADMIN;
         validateRolePermissions(role, dto.getType(), "CREATE");
@@ -138,6 +151,16 @@ public class AnnouncementService {
         return convertToDTO(saved);
     }
 
+    /**
+     * Checks whether a proposed event schedule overlaps with existing live sessions.
+     *
+     * @param courseId Course ID.
+     * @param date Event date.
+     * @param startTime Event start time.
+     * @param endTime Event end time.
+     * @param excludeId Optional ID of event to exclude during update checks.
+     * @return ConflictCheckDTO containing conflict status and details.
+     */
     @Transactional(readOnly = true)
     public ConflictCheckDTO checkScheduleConflict(String courseId, LocalDate date, LocalTime startTime, LocalTime endTime, Long excludeId) {
         if (courseId == null || courseId.trim().isEmpty() || date == null || startTime == null || endTime == null) {
@@ -165,6 +188,14 @@ public class AnnouncementService {
         return new ConflictCheckDTO(false, "No schedule conflict detected. Slot is available.", new ArrayList<>());
     }
 
+    /**
+     * Retrieves all posts matching optional filters (courseId, post type, status) and handles auto-expiry.
+     *
+     * @param courseId Filter by course ID.
+     * @param type Filter by PostType (ANNOUNCEMENT / EVENT).
+     * @param status Filter by PostStatus.
+     * @return Filtered list of AnnouncementDTOs.
+     */
     public List<AnnouncementDTO> getAllPosts(String courseId, PostType type, PostStatus status) {
         List<Announcement> posts = repository.findAll();
         
@@ -191,16 +222,37 @@ public class AnnouncementService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves a single post by ID.
+     *
+     * @param id Post ID.
+     * @return AnnouncementDTO entity details.
+     */
     public AnnouncementDTO getPostById(Long id) {
         Announcement entity = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found with ID: " + id));
         return convertToDTO(entity);
     }
 
+    /**
+     * Updates an existing post with default ADMIN authorization.
+     *
+     * @param id Post ID.
+     * @param dto Updated data payload.
+     * @return Updated AnnouncementDTO.
+     */
     public AnnouncementDTO updatePost(Long id, AnnouncementDTO dto) {
         return updatePost(id, dto, UserRole.ADMIN);
     }
 
+    /**
+     * Updates an existing post checking user role permissions and schedule conflicts.
+     *
+     * @param id Post ID.
+     * @param dto Updated data payload.
+     * @param role UserRole executing update.
+     * @return Updated AnnouncementDTO.
+     */
     public AnnouncementDTO updatePost(Long id, AnnouncementDTO dto, UserRole role) {
         if (role == null) role = UserRole.ADMIN;
         Announcement existing = repository.findById(id)
@@ -247,10 +299,23 @@ public class AnnouncementService {
         return convertToDTO(updated);
     }
 
+    /**
+     * Cancels or soft-deletes a post by ID.
+     *
+     * @param id Post ID.
+     * @return Updated AnnouncementDTO with CANCELLED status.
+     */
     public AnnouncementDTO cancelOrDeletePost(Long id) {
         return cancelOrDeletePost(id, UserRole.ADMIN);
     }
 
+    /**
+     * Cancels or soft-deletes a post by ID checking role permissions.
+     *
+     * @param id Post ID.
+     * @param role UserRole executing action.
+     * @return Updated AnnouncementDTO with CANCELLED status.
+     */
     public AnnouncementDTO cancelOrDeletePost(Long id, UserRole role) {
         if (role == null) role = UserRole.ADMIN;
         Announcement existing = repository.findById(id)

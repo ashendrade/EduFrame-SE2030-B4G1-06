@@ -24,6 +24,10 @@
         </div>
         
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <a th:href="@{/upload}" class="btn btn-secondary" style="border-color: var(--color-secondary); color: var(--color-primary-dark); background-color: var(--color-secondary); font-weight: 800; display: inline-flex; align-items: center; gap: 8px; border: none; box-shadow: var(--shadow-sm);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                Video Management
+            </a>
             <a th:href="@{/upload}" class="btn btn-secondary" style="border-color: var(--color-primary); color: var(--color-primary); display: inline-flex; align-items: center; gap: 8px;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Create New Course
@@ -59,6 +63,14 @@
             </div>
         </div>
 
+        <div class="teacher-stat-card" style="cursor: pointer;" onclick="window.location.href='/upload'">
+            <div class="teacher-stat-icon">📹</div>
+            <div>
+                <div class="teacher-stat-val">Portal</div>
+                <div class="teacher-stat-label">Guest Video Portal &rarr;</div>
+            </div>
+        </div>
+
         <div class="teacher-stat-card">
             <div class="teacher-stat-icon">🎓</div>
             <div>
@@ -79,6 +91,10 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 Quiz &amp; Assessments (<span th:text="${totalQuizzes}">0</span>)
             </button>
+            <a th:href="@{/upload}" class="dash-tab-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                Guest Video Management &rarr;
+            </a>
         </div>
     </div>
 
